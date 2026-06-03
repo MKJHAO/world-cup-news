@@ -1,0 +1,13 @@
+{
+  "appId": "com.worldcup.football",
+  "appName": "世界杯足球资讯",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true,
+    "allowNavigation": ["*"]
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

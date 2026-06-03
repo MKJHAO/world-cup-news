@@ -1,0 +1,18 @@
+{
+  "name": "football-server",
+  "version": "1.0.0",
+  "description": "世界杯足球资讯APP - 后端服务",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "seed": "node src/data/seed.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "node-cron": "^3.0.3",
+    "rss-parser": "^3.13.0",
+    "socket.io": "^4.7.5"
+  }
+}

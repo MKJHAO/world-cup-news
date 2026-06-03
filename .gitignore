@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+
+# 构建产物
+client/dist/
+*.apk
+
+# Android/Capacitor 构建
+client/android/app/build/
+client/android/build/
+client/android/.gradle/
+client/android/local.properties
+client/android/capacitor-cordova-android-plugins/
+
+# 环境变量
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude 内部
+.claude/
+
+# 临时文件
+*.log
