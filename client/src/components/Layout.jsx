@@ -61,12 +61,8 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-dark flex flex-col">
       {/* Header */}
-      <header className="sticky z-50 border-b border-white/[0.04] landscape:h-10"
-        style={{
-          background: 'linear-gradient(180deg, rgba(17,26,38,0.95) 0%, rgba(17,26,38,0.85) 100%)',
-          backdropFilter: 'blur(20px)',
-          top: 'env(safe-area-inset-top, 0px)'
-        }}>
+      <header className="sticky top-0 z-50 border-b border-white/[0.04] landscape:h-10"
+        style={{ background: 'linear-gradient(180deg, rgba(17,26,38,0.95) 0%, rgba(17,26,38,0.85) 100%)', backdropFilter: 'blur(20px)' }}>
         <div className="max-w-7xl mx-auto px-4 h-14 landscape:h-10 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group shrink-0 landscape:gap-1.5">

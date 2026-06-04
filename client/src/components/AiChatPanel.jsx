@@ -54,7 +54,8 @@ export default function AiChatPanel() {
       <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setOpen(false)} />
 
       {/* 聊天面板 */}
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] bg-card border-l border-white/5 flex flex-col shadow-2xl animate-fadeIn">
+      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] bg-card border-l border-white/5 flex flex-col shadow-2xl animate-fadeIn"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {/* 头部 */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
           <div className="flex items-center gap-3">
