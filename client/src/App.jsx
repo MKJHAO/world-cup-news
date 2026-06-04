@@ -10,6 +10,9 @@ import NewsPage from './pages/NewsPage';
 import NewsDetailPage from './pages/NewsDetailPage';
 import AnalysisPage from './pages/AnalysisPage';
 import PredictionPage from './pages/PredictionPage';
+import PredictionGamePage from './pages/PredictionGamePage';
+import GroupDetailPage from './pages/GroupDetailPage';
+import BracketChallengePage from './pages/BracketChallengePage';
 import AdminPage from './pages/AdminPage';
 
 export default function App() {
@@ -26,6 +29,9 @@ export default function App() {
         <Route path="/news/:id" element={<NewsDetailPage />} />
         <Route path="/analysis" element={<AnalysisPage />} />
         <Route path="/prediction" element={<PredictionPage />} />
+        <Route path="/prediction-game" element={<PredictionGamePage />} />
+        <Route path="/group/:id" element={<GroupDetailPage />} />
+        <Route path="/bracket-challenge" element={<BracketChallengePage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">

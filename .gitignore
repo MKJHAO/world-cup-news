@@ -30,5 +30,10 @@ Thumbs.db
 # Claude 内部
 .claude/
 
+# 部署脚本（含敏感信息）
+deploy-to-cloud.js
+setup-env.js
+football-deploy.tar.gz
+
 # 临时文件
 *.log

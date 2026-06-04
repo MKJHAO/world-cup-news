@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/copy-data.cjs",
     "build": "vite build",
     "preview": "vite preview"
   },

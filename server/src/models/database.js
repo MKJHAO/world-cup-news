@@ -108,4 +108,11 @@ const goalScorers = getCollection('goal_scorers');
 const odds = getCollection('odds');
 const gossip = getCollection('gossip');
 
-module.exports = { teams, players, matches, matchEvents, matchStats, standings, news, goalScorers, odds, gossip, getCollection };
+// 新增：用户系统 + 预测竞猜相关集合
+const users = getCollection('users');
+const userPredictions = getCollection('user_predictions');
+const predictionGroups = getCollection('prediction_groups');
+const groupMemberships = getCollection('group_memberships');
+const bracketPredictions = getCollection('bracket_predictions');
+
+module.exports = { teams, players, matches, matchEvents, matchStats, standings, news, goalScorers, odds, gossip, users, userPredictions, predictionGroups, groupMemberships, bracketPredictions, getCollection };

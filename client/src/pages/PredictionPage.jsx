@@ -82,14 +82,14 @@ export default function PredictionPage() {
     : null;
 
   return (
-    <div className="space-y-6">
-      <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')} className="inline-flex items-center gap-1.5 text-white/35 hover:text-white/70 text-sm transition-colors">
+    <div className="space-y-6 landscape:space-y-2">
+      <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')} className="inline-flex items-center gap-1.5 text-white/35 hover:text-white/70 text-sm landscape:text-[11px] transition-colors landscape:hidden">
         <ArrowLeft className="w-4 h-4" /> 返回
       </button>
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-          <Target className="w-6 h-6 text-gold" /> 2026胜率沙盘
+      <div className="flex items-center justify-between flex-wrap gap-3 landscape:gap-1.5">
+        <h1 className="text-2xl landscape:text-lg font-bold tracking-tight flex items-center gap-3 landscape:gap-1.5">
+          <Target className="w-6 h-6 landscape:w-4 landscape:h-4 text-gold" /> 2026胜率沙盘
         </h1>
         <div className="flex gap-1">
           {[
@@ -108,8 +108,8 @@ export default function PredictionPage() {
 
       {/* 预测摘要横幅 */}
       {sandbox?.prediction && (
-        <div className="glass-card border-glow" style={{ background: 'linear-gradient(135deg, rgba(196,146,46,0.08), rgba(196,146,46,0.02))' }}>
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-center">
+        <div className="glass-card landscape:!p-3 border-glow" style={{ background: 'linear-gradient(135deg, rgba(196,146,46,0.08), rgba(196,146,46,0.02))' }}>
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 landscape:gap-4 text-center">
             <div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 mb-2">预测冠军</div>
               <div className="flex items-center gap-2 justify-center">
@@ -144,9 +144,9 @@ export default function PredictionPage() {
 
       {/* 小组沙盘视图 */}
       {view === 'sandbox' && sandbox?.groups && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 landscape:grid-cols-3 gap-4 landscape:gap-2">
           {sandbox.groups.map(group => (
-            <div key={group.group_name} className="glass-card">
+            <div key={group.group_name} className="glass-card landscape:!p-3">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-gold">{group.group_name} 组</h3>
                 <span className="text-[10px] text-white/25">{group.teams.length}支球队</span>

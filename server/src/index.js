@@ -1,8 +1,9 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const path = require('path');
 const cron = require('node-cron');
 
 const matchRoutes = require('./routes/matches');
@@ -14,8 +15,12 @@ const dataRoutes = require('./routes/data');
 const oddsRoutes = require('./routes/odds');
 const gossipRoutes = require('./routes/gossip');
 const predictionRoutes = require('./routes/prediction');
+const userRoutes = require('./routes/users');
+const predictionGameRoutes = require('./routes/predictionGame');
+const aiRoutes = require('./routes/ai');
 const dataFetcher = require('./services/dataFetcher');
 const { seedOdds, seedGossipNews } = require('./data/seedExtra');
+const { adminAuth, login, logout, checkAuth } = require('./middleware/auth');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,11 +44,33 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/standings', standingRoutes);
 app.use('/api/news', newsRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminAuth, adminRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/odds', oddsRoutes);
 app.use('/api/gossip', gossipRoutes);
 app.use('/api/prediction', predictionRoutes);
+
+// 新增：用户系统 + 预测竞猜 + AI助手
+app.use('/api/users', userRoutes);
+app.use('/api', predictionGameRoutes);  // 挂载多个路径：/predictions, /leaderboard, /groups, /bracket
+app.use('/api/ai', aiRoutes);
+
+// 管理员认证
+app.post('/api/auth/login', login);
+app.post('/api/auth/logout', logout);
+app.get('/api/auth/check', checkAuth);
+
+// 公开统计（无需认证）
+app.get('/api/stats', (req, res) => {
+  const { matches, teams, players, news } = require('./models/database');
+  const allMatches = matches.getAll();
+  const completed = allMatches.filter(m => m.status === 'completed');
+  const totalGoals = completed.reduce((s, m) => s + m.home_score + m.away_score, 0);
+  const avgGoals = completed.length > 0 ? (totalGoals / completed.length).toFixed(1) : '0';
+  const now = new Date();
+  const upcoming2026 = allMatches.filter(m => new Date(m.match_date) > now && (m.match_date || '').startsWith('2026')).length;
+  res.json({ success: true, data: { totalMatches: allMatches.length, totalGoals, avgGoals, totalTeams: teams.count(), totalPlayers: players.count(), totalNews: news.count(), upcoming2026Matches: upcoming2026 } });
+});
 
 // 健康检查
 app.get('/api/health', (req, res) => {
@@ -127,5 +154,15 @@ cron.schedule('0 */3 * * *', async () => {
     console.log(`  - 新增: ${result.added || 0} 条`);
   } catch (e) {
     console.error('新闻刷新失败:', e.message);
+  }
+});
+
+// 每分钟检查是否有直播比赛，触发AI解说
+cron.schedule('* * * * *', async () => {
+  try {
+    const aiService = require('./services/aiService');
+    await aiService.pushLiveCommentary(io);
+  } catch (e) {
+    // AI解说失败不影响主服务
   }
 });

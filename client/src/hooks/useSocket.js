@@ -21,10 +21,36 @@ export function useSocket() {
     s.on('disconnect', () => setConnected(false));
     s.on('match_updated', (match) => updateMatchInList(match));
 
+    // AI实时解说
+    s.on('ai_commentary', (data) => {
+      // 动态导入避免循环依赖
+      import('../stores/aiStore').then(mod => {
+        mod.default.getState().addCommentary(data.text);
+      });
+    });
+
+    // 预测评分通知
+    s.on('prediction_scored', (data) => {
+      import('../stores/userStore').then(mod => {
+        mod.default.getState().updatePoints(data.points);
+      });
+    });
+
+    // 比赛专属解说
+    s.onAny((event, data) => {
+      if (event.startsWith('match_') && event.endsWith('_commentary')) {
+        import('../stores/aiStore').then(mod => {
+          mod.default.getState().addCommentary(data.text);
+        });
+      }
+    });
+
     return () => {
       s.off('connect');
       s.off('disconnect');
       s.off('match_updated');
+      s.off('ai_commentary');
+      s.off('prediction_scored');
     };
   }, []);
 

@@ -38,32 +38,32 @@ export default function MatchesPage() {
   const bracketMatches = matches.filter(m => knockoutStages.includes(m.stage));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-          <CalendarDays className="w-6 h-6 text-gold" />
+    <div className="space-y-6 landscape:space-y-2">
+      <div className="flex items-center justify-between flex-wrap gap-3 landscape:gap-1.5">
+        <h1 className="text-2xl landscape:text-lg font-bold tracking-tight flex items-center gap-3 landscape:gap-1.5">
+          <CalendarDays className="w-6 h-6 landscape:w-4 landscape:h-4 text-gold" />
           赛程与结果
         </h1>
         {/* Tournament switcher */}
         <div className="flex gap-1">
           {['2026', '2022'].map(y => (
             <button key={y} onClick={() => setTournament(y)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                tournament === y ? 'bg-gold text-dark shadow-lg shadow-gold/20' : 'glass-card !py-2 text-white/40 hover:text-white/80'
+              className={`px-4 py-2 landscape:px-2.5 landscape:py-1.5 rounded-xl text-sm landscape:text-[11px] font-semibold transition-all ${
+                tournament === y ? 'bg-gold text-dark shadow-lg shadow-gold/20' : 'glass-card !py-2 landscape:!py-1.5 text-white/40 hover:text-white/80'
               }`}>{y === '2026' ? '2026 世界杯' : '2022 卡塔尔'}</button>
           ))}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="glass-card flex flex-wrap gap-3 items-center">
-        <Filter className="w-4 h-4 text-white/40" />
-        <select className="bg-white/[0.04] text-white/80 border border-white/[0.08] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-gold/50"
+      <div className="glass-card landscape:!p-2.5 flex flex-wrap gap-3 landscape:gap-1.5 items-center">
+        <Filter className="w-4 h-4 landscape:w-3 landscape:h-3 text-white/40" />
+        <select className="bg-white/[0.04] text-white/80 border border-white/[0.08] rounded-xl landscape:rounded-lg px-3.5 py-2 landscape:px-2 landscape:py-1 text-sm landscape:text-[11px] focus:outline-none focus:border-gold/50"
           value={filter.stage} onChange={e => setFilter(f => ({ ...f, stage: e.target.value }))}>
           <option value="" className="bg-dark">全部阶段</option>
           {Object.entries(stageLabels).map(([k, v]) => <option key={k} value={k} className="bg-dark">{v}</option>)}
         </select>
-        <select className="bg-white/[0.04] text-white/80 border border-white/[0.08] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-gold/50"
+        <select className="bg-white/[0.04] text-white/80 border border-white/[0.08] rounded-xl landscape:rounded-lg px-3.5 py-2 landscape:px-2 landscape:py-1 text-sm landscape:text-[11px] focus:outline-none focus:border-gold/50"
           value={filter.group} onChange={e => setFilter(f => ({ ...f, group: e.target.value }))}>
           <option value="" className="bg-dark">全部小组</option>
           {groups.map(g => <option key={g} value={g} className="bg-dark">{g} 组</option>)}
@@ -82,10 +82,10 @@ export default function MatchesPage() {
         <div className="space-y-8">
           {groupedByDate.map(([date, dateMatches]) => (
             <section key={date}>
-              <h2 className="sticky top-14 bg-dark/95 backdrop-blur-sm py-2 z-10 text-sm font-bold text-gold/80 tracking-wider">
+              <h2 className="sticky top-14 landscape:top-10 bg-dark/95 backdrop-blur-sm py-2 landscape:py-1 z-10 text-sm landscape:text-[11px] font-bold text-gold/80 tracking-wider">
                 📅 {date}
               </h2>
-              <div className="space-y-2 mt-2">
+              <div className="space-y-2 landscape:space-y-1 mt-2 landscape:mt-1">
                 {dateMatches.map(m => <MatchCard key={m.id} match={m} />)}
               </div>
             </section>
@@ -117,19 +117,19 @@ function MatchCard({ match: m }) {
   const isLive = ['live', 'first_half', 'second_half'].includes(m.status);
 
   return (
-    <Link to={`/match/${m.id}`} className="glass-card block match-card-hover">
+    <Link to={`/match/${m.id}`} className="glass-card landscape:!p-2.5 block match-card-hover">
       <div className="flex items-center">
         {/* Home */}
-        <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
+        <div className="flex items-center gap-3 landscape:gap-1.5 flex-1 justify-end min-w-0">
           <div className="text-right min-w-0">
-            <div className="font-bold text-sm truncate">{m.home_team_cn}</div>
-            <div className="text-[10px] text-white/30 truncate">{m.home_team_name}</div>
+            <div className="font-bold text-sm landscape:text-[11px] truncate">{m.home_team_cn}</div>
+            <div className="text-[10px] landscape:text-[8px] text-white/30 truncate">{m.home_team_name}</div>
           </div>
           <FlagImage teamName={m.home_team_name} size="md" />
         </div>
 
         {/* Score */}
-        <div className="mx-5 text-center min-w-[90px]">
+        <div className="mx-5 landscape:mx-2 text-center min-w-[90px] landscape:min-w-[70px]">
           {score ? (
             <>
               <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-medium ${
@@ -160,15 +160,15 @@ function MatchCard({ match: m }) {
         </div>
 
         {/* Away */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center gap-3 landscape:gap-1.5 flex-1 min-w-0">
           <FlagImage teamName={m.away_team_name} size="md" />
           <div className="min-w-0">
-            <div className="font-bold text-sm truncate">{m.away_team_cn}</div>
-            <div className="text-[10px] text-white/30 truncate">{m.away_team_name}</div>
+            <div className="font-bold text-sm landscape:text-[11px] truncate">{m.away_team_cn}</div>
+            <div className="text-[10px] landscape:text-[8px] text-white/30 truncate">{m.away_team_name}</div>
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center gap-2 mt-2.5 text-[10px] text-white/20">
+      <div className="flex items-center justify-center gap-2 mt-2.5 landscape:mt-1 text-[10px] landscape:text-[8px] text-white/20">
         <MapPin className="w-3 h-3" />{m.stadium}
         {m.attendance > 0 && <span>· {m.attendance.toLocaleString()} 人</span>}
       </div>

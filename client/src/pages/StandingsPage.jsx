@@ -17,32 +17,32 @@ export default function StandingsPage() {
   useEffect(() => { fetchStandings(activeGroup, tournament); fetchTopScorers(); }, [activeGroup, tournament]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-          <BarChart3 className="w-6 h-6 text-gold" />
+    <div className="space-y-6 landscape:space-y-2">
+      <div className="flex items-center justify-between flex-wrap gap-3 landscape:gap-1.5">
+        <h1 className="text-2xl landscape:text-lg font-bold tracking-tight flex items-center gap-3 landscape:gap-1.5">
+          <BarChart3 className="w-6 h-6 landscape:w-4 landscape:h-4 text-gold" />
           积分榜
         </h1>
         <div className="flex gap-1">
           {['2026', '2022'].map(y => (
             <button key={y} onClick={() => { setTournament(y); setActiveGroup('A'); }}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                tournament === y ? 'bg-gold text-dark shadow-lg shadow-gold/20' : 'glass-card !py-2 text-white/40 hover:text-white/80'
+              className={`px-4 py-2 landscape:px-2.5 landscape:py-1.5 rounded-xl text-sm landscape:text-[11px] font-semibold transition-all ${
+                tournament === y ? 'bg-gold text-dark shadow-lg shadow-gold/20' : 'glass-card !py-2 landscape:!py-1.5 text-white/40 hover:text-white/80'
               }`}>{y === '2026' ? '2026 世界杯' : '2022 卡塔尔'}</button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 landscape:grid-cols-3 gap-6 landscape:gap-3">
+        <div className="lg:col-span-2 landscape:col-span-2">
           {/* Group tabs */}
-          <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+          <div className="flex gap-1 landscape:gap-0.5 mb-4 landscape:mb-2 overflow-x-auto pb-1">
             {groups.map(g => (
               <button key={g} onClick={() => setActiveGroup(g)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+                className={`px-5 py-2.5 landscape:px-3 landscape:py-1.5 rounded-xl text-sm landscape:text-[11px] font-bold transition-all duration-200 whitespace-nowrap ${
                   activeGroup === g
                     ? 'bg-gold text-dark shadow-lg shadow-gold/20'
-                    : 'glass-card !py-2.5 text-white/40 hover:text-white/80'
+                    : 'glass-card !py-2.5 landscape:!py-1.5 text-white/40 hover:text-white/80'
                 }`}>{g} 组</button>
             ))}
           </div>
@@ -51,45 +51,45 @@ export default function StandingsPage() {
             <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="glass-card h-12 shimmer rounded-xl" />)}</div>
           ) : (
             <div className="glass-card !p-0 overflow-hidden">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm landscape:text-[11px]">
                 <thead>
-                  <tr className="text-[10px] text-white/30 uppercase tracking-wider border-b border-white/[0.04]">
-                    <th className="py-3.5 pl-5 text-left w-8">#</th>
-                    <th className="py-3.5 text-left">球队</th>
-                    <th className="py-3.5 text-center">场</th>
-                    <th className="py-3.5 text-center hidden sm:table-cell">胜</th>
-                    <th className="py-3.5 text-center hidden sm:table-cell">平</th>
-                    <th className="py-3.5 text-center hidden sm:table-cell">负</th>
-                    <th className="py-3.5 text-center">进/失</th>
-                    <th className="py-3.5 text-center hidden md:table-cell">净胜</th>
-                    <th className="py-3.5 pr-5 text-center font-bold">分</th>
-                    <th className="py-3.5 text-center hidden md:table-cell pr-3">近5场</th>
+                  <tr className="text-[10px] landscape:text-[8px] text-white/30 uppercase tracking-wider border-b border-white/[0.04]">
+                    <th className="py-3.5 landscape:py-1.5 pl-5 landscape:pl-3 text-left w-8">#</th>
+                    <th className="py-3.5 landscape:py-1.5 text-left">球队</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center">场</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center hidden sm:table-cell">胜</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center hidden sm:table-cell">平</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center hidden sm:table-cell">负</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center">进/失</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center hidden md:table-cell">净胜</th>
+                    <th className="py-3.5 landscape:py-1.5 pr-5 landscape:pr-2 text-center font-bold">分</th>
+                    <th className="py-3.5 landscape:py-1.5 text-center hidden md:table-cell pr-3">近5场</th>
                   </tr>
                 </thead>
                 <tbody>
                   {standings.map((s, i) => (
                     <tr key={s.id} className={`border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors ${i < 2 ? 'bg-white/[0.02]' : ''}`}>
-                      <td className="py-3 pl-5">
-                        <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-bold ${
+                      <td className="py-3 landscape:py-1 pl-5 landscape:pl-3">
+                        <span className={`w-6 h-6 landscape:w-5 landscape:h-5 rounded-lg flex items-center justify-center text-[11px] landscape:text-[9px] font-bold ${
                           i === 0 ? 'bg-gold/20 text-gold' : i === 1 ? 'bg-white/[0.06] text-white/60' : 'text-white/25'
                         }`}>{i + 1}</span>
                       </td>
-                      <td className="py-3">
-                        <Link to={`/team/${s.team_id}`} className="flex items-center gap-2.5 hover:text-gold transition-colors">
+                      <td className="py-3 landscape:py-1">
+                        <Link to={`/team/${s.team_id}`} className="flex items-center gap-2.5 landscape:gap-1.5 hover:text-gold transition-colors">
                           <FlagImage teamName={s.name} size="sm" />
-                          <span className="font-semibold text-[13px]">{s.name_cn}</span>
+                          <span className="font-semibold text-[13px] landscape:text-[10px]">{s.name_cn}</span>
                         </Link>
                       </td>
-                      <td className="py-3 text-center text-white/40 text-[13px]">{s.played}</td>
-                      <td className="py-3 text-center font-medium text-[13px] hidden sm:table-cell">{s.won}</td>
-                      <td className="py-3 text-center text-white/40 text-[13px] hidden sm:table-cell">{s.drawn}</td>
-                      <td className="py-3 text-center text-white/40 text-[13px] hidden sm:table-cell">{s.lost}</td>
-                      <td className="py-3 text-center text-[13px]">{s.goals_for}<span className="text-white/20">-</span>{s.goals_against}</td>
-                      <td className={`py-3 text-center font-medium text-[13px] hidden md:table-cell ${
+                      <td className="py-3 landscape:py-1 text-center text-white/40 text-[13px] landscape:text-[10px]">{s.played}</td>
+                      <td className="py-3 landscape:py-1 text-center font-medium text-[13px] landscape:text-[10px] hidden sm:table-cell">{s.won}</td>
+                      <td className="py-3 landscape:py-1 text-center text-white/40 text-[13px] landscape:text-[10px] hidden sm:table-cell">{s.drawn}</td>
+                      <td className="py-3 landscape:py-1 text-center text-white/40 text-[13px] landscape:text-[10px] hidden sm:table-cell">{s.lost}</td>
+                      <td className="py-3 landscape:py-1 text-center text-[13px] landscape:text-[10px]">{s.goals_for}<span className="text-white/20">-</span>{s.goals_against}</td>
+                      <td className={`py-3 landscape:py-1 text-center font-medium text-[13px] landscape:text-[10px] hidden md:table-cell ${
                         s.goal_diff > 0 ? 'text-accent' : s.goal_diff < 0 ? 'text-danger/80' : 'text-white/30'
                       }`}>{s.goal_diff > 0 ? '+' : ''}{s.goal_diff}</td>
-                      <td className="py-3 pr-5 text-center text-[15px] font-bold text-gold">{s.points}</td>
-                      <td className="py-3 text-center hidden md:table-cell"><FormIndicator form={s.form} /></td>
+                      <td className="py-3 landscape:py-1 pr-5 landscape:pr-2 text-center text-[15px] landscape:text-xs font-bold text-gold">{s.points}</td>
+                      <td className="py-3 landscape:py-1 text-center hidden md:table-cell"><FormIndicator form={s.form} /></td>
                     </tr>
                   ))}
                 </tbody>

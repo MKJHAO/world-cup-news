@@ -1,0 +1,209 @@
+[
+  {
+    "id": 1,
+    "team_id": 9,
+    "name": "Lionel Messi",
+    "name_cn": "梅西",
+    "number": 10,
+    "position": "FW",
+    "age": 35
+  },
+  {
+    "id": 2,
+    "team_id": 9,
+    "name": "Angel Di Maria",
+    "name_cn": "迪马利亚",
+    "number": 11,
+    "position": "FW",
+    "age": 34
+  },
+  {
+    "id": 3,
+    "team_id": 9,
+    "name": "Julian Alvarez",
+    "name_cn": "阿尔瓦雷斯",
+    "number": 9,
+    "position": "FW",
+    "age": 22
+  },
+  {
+    "id": 4,
+    "team_id": 9,
+    "name": "Emiliano Martinez",
+    "name_cn": "马丁内斯",
+    "number": 23,
+    "position": "GK",
+    "age": 30
+  },
+  {
+    "id": 5,
+    "team_id": 13,
+    "name": "Kylian Mbappe",
+    "name_cn": "姆巴佩",
+    "number": 10,
+    "position": "FW",
+    "age": 23
+  },
+  {
+    "id": 6,
+    "team_id": 13,
+    "name": "Antoine Griezmann",
+    "name_cn": "格列兹曼",
+    "number": 7,
+    "position": "FW",
+    "age": 31
+  },
+  {
+    "id": 7,
+    "team_id": 13,
+    "name": "Olivier Giroud",
+    "name_cn": "吉鲁",
+    "number": 9,
+    "position": "FW",
+    "age": 36
+  },
+  {
+    "id": 8,
+    "team_id": 25,
+    "name": "Neymar",
+    "name_cn": "内马尔",
+    "number": 10,
+    "position": "FW",
+    "age": 30
+  },
+  {
+    "id": 9,
+    "team_id": 25,
+    "name": "Vinicius Jr",
+    "name_cn": "维尼修斯",
+    "number": 20,
+    "position": "FW",
+    "age": 22
+  },
+  {
+    "id": 10,
+    "team_id": 25,
+    "name": "Richarlison",
+    "name_cn": "里沙利松",
+    "number": 9,
+    "position": "FW",
+    "age": 25
+  },
+  {
+    "id": 11,
+    "team_id": 29,
+    "name": "Cristiano Ronaldo",
+    "name_cn": "C罗",
+    "number": 7,
+    "position": "FW",
+    "age": 37
+  },
+  {
+    "id": 12,
+    "team_id": 29,
+    "name": "Bruno Fernandes",
+    "name_cn": "B费",
+    "number": 8,
+    "position": "MF",
+    "age": 28
+  },
+  {
+    "id": 13,
+    "team_id": 5,
+    "name": "Harry Kane",
+    "name_cn": "凯恩",
+    "number": 9,
+    "position": "FW",
+    "age": 29
+  },
+  {
+    "id": 14,
+    "team_id": 5,
+    "name": "Jude Bellingham",
+    "name_cn": "贝林厄姆",
+    "number": 22,
+    "position": "MF",
+    "age": 19
+  },
+  {
+    "id": 15,
+    "team_id": 17,
+    "name": "Gavi",
+    "name_cn": "加维",
+    "number": 9,
+    "position": "MF",
+    "age": 18
+  },
+  {
+    "id": 16,
+    "team_id": 17,
+    "name": "Pedri",
+    "name_cn": "佩德里",
+    "number": 26,
+    "position": "MF",
+    "age": 19
+  },
+  {
+    "id": 17,
+    "team_id": 19,
+    "name": "Jamal Musiala",
+    "name_cn": "穆夏拉",
+    "number": 14,
+    "position": "MF",
+    "age": 19
+  },
+  {
+    "id": 18,
+    "team_id": 4,
+    "name": "Virgil van Dijk",
+    "name_cn": "范戴克",
+    "number": 4,
+    "position": "DF",
+    "age": 31
+  },
+  {
+    "id": 19,
+    "team_id": 4,
+    "name": "Cody Gakpo",
+    "name_cn": "加克波",
+    "number": 8,
+    "position": "FW",
+    "age": 23
+  },
+  {
+    "id": 20,
+    "team_id": 24,
+    "name": "Luka Modric",
+    "name_cn": "莫德里奇",
+    "number": 10,
+    "position": "MF",
+    "age": 37
+  },
+  {
+    "id": 21,
+    "team_id": 21,
+    "name": "Kevin De Bruyne",
+    "name_cn": "德布劳内",
+    "number": 7,
+    "position": "MF",
+    "age": 31
+  },
+  {
+    "id": 22,
+    "team_id": 23,
+    "name": "Achraf Hakimi",
+    "name_cn": "阿什拉夫",
+    "number": 2,
+    "position": "DF",
+    "age": 24
+  },
+  {
+    "id": 23,
+    "team_id": 32,
+    "name": "Son Heung-min",
+    "name_cn": "孙兴慜",
+    "number": 7,
+    "position": "FW",
+    "age": 30
+  }
+]

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, BarChart3, Shield, Newspaper, Settings, Trophy, Wifi, WifiOff, Search, TrendingUp, Target } from 'lucide-react';
+import { Home, CalendarDays, BarChart3, Shield, Newspaper, Settings, Trophy, Wifi, WifiOff, Search, TrendingUp, Target, Swords } from 'lucide-react';
 import { useSocket } from '../hooks/useSocket';
 import useSwipeBack from '../hooks/useSwipeBack';
 import useAppStore from '../stores/appStore';
+import useUserStore from '../stores/userStore';
 import SearchModal from './SearchModal';
+import AiFloatingButton from './AiFloatingButton';
+import AiChatPanel from './AiChatPanel';
+import UserRegisterModal from './UserRegisterModal';
 import { App } from '@capacitor/app';
 
 const navItems = [
@@ -12,7 +16,7 @@ const navItems = [
   { path: '/matches', label: '赛程', Icon: CalendarDays },
   { path: '/standings', label: '积分榜', Icon: BarChart3 },
   { path: '/teams', label: '球队', Icon: Shield },
-  { path: '/prediction', label: '沙盘', Icon: Target },
+  { path: '/prediction-game', label: '竞猜', Icon: Swords },
   { path: '/news', label: '新闻', Icon: Newspaper }
 ];
 
@@ -22,6 +26,10 @@ export default function Layout({ children }) {
   const [searchOpen, setSearchOpen] = useState(false);
   useSocket();
   const { swipeProgress, isDetailPage } = useSwipeBack({ threshold: 70, edgeWidth: 40 });
+
+  // 初始化用户状态
+  const userStore = useUserStore();
+  useEffect(() => { userStore.init(); }, []);
 
   // 安卓返回键监听 (Capacitor)
   useEffect(() => {
@@ -53,18 +61,18 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-dark flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.04]"
+      <header className="sticky top-0 z-50 border-b border-white/[0.04] landscape:h-10"
         style={{ background: 'linear-gradient(180deg, rgba(17,26,38,0.95) 0%, rgba(17,26,38,0.85) 100%)', backdropFilter: 'blur(20px)' }}>
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-14 landscape:h-10 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold to-yellow-500 flex items-center justify-center
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0 landscape:gap-1.5">
+            <div className="w-8 h-8 landscape:w-6 landscape:h-6 rounded-lg bg-gradient-to-br from-gold to-yellow-500 flex items-center justify-center
               shadow-lg shadow-gold/30 group-hover:shadow-gold/50 transition-shadow">
-              <Trophy className="w-4.5 h-4.5 text-dark" strokeWidth={2.5} />
+              <Trophy className="w-4.5 h-4.5 landscape:w-3.5 landscape:h-3.5 text-dark" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold text-white tracking-wide">World Cup</span>
-              <span className="text-[10px] text-gold/60 tracking-[0.15em] uppercase">2022 - 2026</span>
+              <span className="text-sm font-bold text-white tracking-wide landscape:text-[11px]">World Cup</span>
+              <span className="text-[10px] text-gold/60 tracking-[0.15em] uppercase landscape:hidden">2022 - 2026</span>
             </div>
           </Link>
 
@@ -93,6 +101,28 @@ export default function Layout({ children }) {
               </Link>
             ))}
             <div className="w-px h-5 bg-white/[0.06] mx-1" />
+            <Link
+              to="/prediction"
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 focus-visible:ring-1 focus-visible:ring-gold/50 ${
+                isActive('/prediction')
+                  ? 'bg-gold/15 text-gold'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
+              }`}
+            >
+              <Target className="w-4 h-4" strokeWidth={1.75} />
+              沙盘
+            </Link>
+            <Link
+              to="/bracket-challenge"
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 focus-visible:ring-1 focus-visible:ring-gold/50 ${
+                isActive('/bracket-challenge')
+                  ? 'bg-gold/15 text-gold'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
+              }`}
+            >
+              <Trophy className="w-4 h-4" strokeWidth={1.75} />
+              Bracket
+            </Link>
             <Link
               to="/analysis"
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 focus-visible:ring-1 focus-visible:ring-gold/50 ${
@@ -128,20 +158,21 @@ export default function Layout({ children }) {
         </div>
       </header>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.04]"
+      {/* Mobile Bottom Nav — 横屏时移至左侧垂直栏 */}
+      <nav className="md:hidden fixed landscape:left-0 landscape:top-10 landscape:bottom-0 landscape:w-14 landscape:h-auto
+        bottom-0 left-0 right-0 z-50 border-t border-white/[0.04] landscape:border-t-0 landscape:border-r"
         style={{ background: 'linear-gradient(0deg, rgba(17,26,38,0.98) 0%, rgba(17,26,38,0.9) 100%)', backdropFilter: 'blur(20px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="flex justify-around items-center h-14 px-2">
+        <div className="flex landscape:flex-col justify-around landscape:justify-start landscape:gap-1 landscape:pt-2 items-center h-14 landscape:h-full px-2 landscape:px-0">
           {navItems.map(({ path, label, Icon }) => (
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl min-w-0 transition-colors ${
+              className={`flex flex-col landscape:flex-col items-center gap-0.5 landscape:gap-0 py-1 px-3 landscape:px-0 landscape:py-2 rounded-xl min-w-0 transition-colors ${
                 isActive(path) ? 'text-gold' : 'text-white/35'
               }`}
             >
-              <Icon className="w-5 h-5" strokeWidth={isActive(path) ? 2 : 1.5} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <Icon className="w-5 h-5 landscape:w-4.5 landscape:h-4.5" strokeWidth={isActive(path) ? 2 : 1.5} />
+              <span className="text-[10px] font-medium landscape:text-[8px]">{label}</span>
             </Link>
           ))}
         </div>
@@ -164,15 +195,15 @@ export default function Layout({ children }) {
         />
       )}
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-5 md:py-8 pb-20 md:pb-8">
+      {/* Main Content — 横屏时左侧偏移给垂直导航 */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 landscape:px-2 py-5 md:py-8 landscape:py-2 pb-20 md:pb-8 landscape:pb-2 landscape:pl-16">
         <div className="animate-fade-in">
           {children}
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="hidden md:block border-t border-white/[0.03] py-6 text-center">
+      {/* Footer — 横屏时隐藏 */}
+      <footer className="hidden md:block landscape:hidden border-t border-white/[0.03] py-6 text-center">
         <div className="flex items-center justify-center gap-6 text-xs text-white/25">
           <span>FIFA World Cup 2022-2026</span>
           <span className="w-1 h-1 rounded-full bg-white/10" />
@@ -184,6 +215,13 @@ export default function Layout({ children }) {
 
       {/* Search Modal */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* AI浮动按钮 + 聊天面板 */}
+      <AiFloatingButton />
+      <AiChatPanel />
+
+      {/* 用户注册弹窗 */}
+      <UserRegisterModal />
     </div>
   );
 }

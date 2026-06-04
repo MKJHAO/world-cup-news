@@ -202,3 +202,65 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ===== 移动端横屏适配 ===== */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 全局缩小间距 */
+  body {
+    font-size: 13px;
+  }
+
+  /* 减小卡片内边距 */
+  .glass-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  /* 减小标题 */
+  .section-title {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+
+  /* 减小按钮 */
+  .btn-primary,
+  .btn-outline {
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  /* 表格更紧凑 */
+  table th,
+  table td {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  /* 网格间距减小 */
+  .grid {
+    gap: 8px;
+  }
+
+  /* space-y 减小 */
+  .space-y-6 > * + * { --tw-space-y-reverse: 0; margin-top: 12px; }
+  .space-y-3 > * + * { --tw-space-y-reverse: 0; margin-top: 6px; }
+  .space-y-2 > * + * { --tw-space-y-reverse: 0; margin-top: 4px; }
+
+  /* 隐藏不必要的装饰 */
+  .hero-glow {
+    opacity: 0.3;
+  }
+
+  /* 减小字体 */
+  h1 { font-size: 1.25rem !important; }
+  h2 { font-size: 1rem !important; }
+
+  /* 首页倒计时调整 */
+  .countdown-digit {
+    min-width: 36px;
+    padding: 6px 8px;
+    font-size: 1rem;
+  }
+}
+

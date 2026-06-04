@@ -31,6 +31,21 @@ router.put('/matches/:id', (req, res) => {
 
   if (status === 'completed') {
     updateStandings(updatedMatch);
+    // 触发预测评分
+    try {
+      const predictionGameService = require('../services/predictionGameService');
+      const scored = predictionGameService.scoreMatchPredictions(id);
+      if (scored > 0) {
+        console.log(`  🎯 已结算 ${scored} 条预测 (比赛 #${id})`);
+        // WebSocket通知
+        const io = req.app.get('io');
+        if (io) {
+          io.emit('prediction_scored', { match_id: id, count: scored, points: 0 });
+        }
+      }
+    } catch (e) {
+      console.error('预测评分失败:', e.message);
+    }
   }
 
   const ht = teams.getById(updatedMatch.home_team_id);

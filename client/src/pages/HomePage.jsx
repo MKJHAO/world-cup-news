@@ -5,6 +5,7 @@ import useAppStore from '../stores/appStore';
 import FlagImage from '../components/FlagImage';
 import HeroCarousel from '../components/HeroCarousel';
 import LiveTicker from '../components/LiveTicker';
+import { fetchStats, matchAPI } from '../services/api';
 
 const stageLabels = { group: '小组赛', round16: '1/8决赛', quarter: '1/4决赛', semi: '半决赛', third: '季军赛', final: '决赛', round32: '1/16决赛' };
 
@@ -35,7 +36,7 @@ function CountdownTimer() {
   }
 
   return (
-    <div className="flex items-center gap-3 md:gap-4">
+    <div className="flex items-center gap-3 md:gap-4 landscape:gap-1.5">
       {[
         { v: timeLeft.days, l: '天' },
         { v: timeLeft.hours, l: '时' },
@@ -43,10 +44,10 @@ function CountdownTimer() {
         { v: timeLeft.seconds, l: '秒' }
       ].map((item, i) => (
         <div key={i} className="text-center">
-          <div className="bg-gold/15 border border-gold/30 rounded-xl px-3 py-2 min-w-[48px]">
-            <span className="text-xl md:text-2xl font-bold text-gold score-number">{String(item.v).padStart(2, '0')}</span>
+          <div className="bg-gold/15 border border-gold/30 rounded-xl landscape:rounded-lg px-3 py-2 landscape:px-2 landscape:py-1 min-w-[48px] landscape:min-w-[32px]">
+            <span className="text-xl md:text-2xl landscape:text-sm font-bold text-gold score-number">{String(item.v).padStart(2, '0')}</span>
           </div>
-          <div className="text-[10px] text-white/30 mt-1 uppercase">{item.l}</div>
+          <div className="text-[10px] landscape:text-[7px] text-white/30 mt-1 landscape:mt-0.5 uppercase">{item.l}</div>
         </div>
       ))}
     </div>
@@ -64,11 +65,12 @@ export default function HomePage() {
     fetchMatches({ limit: 100 });
     fetchNews({ limit: 10 });
     fetchTopScorers();
-    fetch('/api/admin/stats').then(r => r.json()).then(d => d.success && setStats(d.data)).catch(() => {});
-    fetch('/api/matches?stage=group&status=scheduled&limit=20').then(r => r.json())
+    fetchStats().then(d => d.success && setStats(d.data)).catch(() => {});
+    matchAPI.getAll({ stage: 'group', status: 'scheduled', limit: 20 })
       .then(d => {
         if (d.success) {
-          const matches2026 = d.data.filter(m => (m.match_date || '').startsWith('2026'));
+          const data = d.data || d;
+          const matches2026 = (Array.isArray(data) ? data : []).filter(m => (m.match_date || '').startsWith('2026'));
           setUpcoming2026(matches2026.slice(0, 6));
           setOpeningMatch(matches2026[0] || null);
         }
@@ -85,71 +87,71 @@ export default function HomePage() {
       <LiveTicker />
 
       {/* ===== Hero Banner with Photos ===== */}
-      <div className="relative overflow-hidden rounded-3xl p-6 md:p-10 min-h-[380px] md:min-h-[420px] flex items-center">
+      <div className="relative overflow-hidden rounded-3xl landscape:rounded-xl p-6 md:p-10 landscape:p-3 min-h-[380px] md:min-h-[420px] landscape:min-h-0 landscape:h-auto flex items-center">
         <HeroCarousel />
 
         <div className="relative z-10 w-full">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-5 landscape:mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-live-pulse" />
-            <span className="text-xs font-semibold text-accent tracking-wider uppercase">FIFA World Cup 2026</span>
+            <span className="text-xs landscape:text-[10px] font-semibold text-accent tracking-wider uppercase">FIFA World Cup 2026</span>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-12">
+          <div className="flex flex-col lg:flex-row landscape:flex-row items-start lg:items-center landscape:items-center gap-6 lg:gap-12 landscape:gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight mb-3">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl landscape:text-lg font-bold leading-tight tracking-tight mb-3 landscape:mb-1">
                 <span className="text-white">2026美加墨</span>
-                <br className="md:hidden" />
+                <br className="md:hidden landscape:hidden" />
                 <span className="text-gold-gradient"> 世界杯倒计时</span>
               </h1>
-              <p className="text-sm md:text-base text-white/50 max-w-xl mb-2 leading-relaxed">
+              <p className="text-sm md:text-base landscape:text-[10px] text-white/50 max-w-xl mb-2 landscape:mb-1 leading-relaxed">
                 48支球队 · 16个主办城市 · 104场比赛 · 横跨北美三国
               </p>
-              <div className="flex items-center gap-2 text-xs text-white/35 mb-5">
-                <Globe className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 text-xs landscape:text-[9px] text-white/35 mb-5 landscape:mb-2">
+                <Globe className="w-3.5 h-3.5 landscape:w-3 landscape:h-3" />
                 <span>美国 · 加拿大 · 墨西哥 | 2026.6.11 - 7.19</span>
               </div>
 
               <CountdownTimer />
 
-              <div className="flex gap-3 mt-5 flex-wrap">
-                <Link to="/matches" className="btn-primary inline-flex items-center gap-2 text-sm">
-                  <CalendarDays className="w-4 h-4" /> 查看赛程 <ChevronRight className="w-4 h-4" />
+              <div className="flex gap-3 landscape:gap-1.5 mt-5 landscape:mt-2 flex-wrap">
+                <Link to="/matches" className="btn-primary inline-flex items-center gap-2 landscape:gap-1 text-sm landscape:text-[10px] landscape:py-1.5 landscape:px-3">
+                  <CalendarDays className="w-4 h-4 landscape:w-3 landscape:h-3" /> 查看赛程 <ChevronRight className="w-4 h-4 landscape:w-3 landscape:h-3" />
                 </Link>
-                <Link to="/standings" className="btn-outline inline-flex items-center gap-2 text-sm">
-                  <Target className="w-4 h-4" /> 积分榜
+                <Link to="/standings" className="btn-outline inline-flex items-center gap-2 landscape:gap-1 text-sm landscape:text-[10px] landscape:py-1.5 landscape:px-3">
+                  <Target className="w-4 h-4 landscape:w-3 landscape:h-3" /> 积分榜
                 </Link>
-                <Link to="/news" className="btn-outline inline-flex items-center gap-2 text-sm">
-                  <Globe className="w-4 h-4" /> 最新资讯
+                <Link to="/news" className="btn-outline inline-flex items-center gap-2 landscape:gap-1 text-sm landscape:text-[10px] landscape:py-1.5 landscape:px-3">
+                  <Globe className="w-4 h-4 landscape:w-3 landscape:h-3" /> 最新资讯
                 </Link>
               </div>
             </div>
 
             {/* Opening Match */}
             {openingMatch ? (
-              <div className="w-full lg:w-auto lg:min-w-[320px] space-y-2">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 text-center">揭幕战 · Opening Match</div>
-                <Link to={`/match/${openingMatch.id}`} className="glass-card border-glow text-center py-4 px-6 block match-card-hover">
-                  <div className="flex items-center justify-center gap-5">
+              <div className="w-full lg:w-auto lg:min-w-[320px] landscape:min-w-0 landscape:max-w-[200px] space-y-2 landscape:space-y-0.5">
+                <div className="text-[10px] landscape:text-[8px] uppercase tracking-[0.2em] text-white/30 text-center">揭幕战 · Opening Match</div>
+                <Link to={`/match/${openingMatch.id}`} className="glass-card border-glow text-center py-4 px-6 landscape:py-2 landscape:px-3 block match-card-hover">
+                  <div className="flex items-center justify-center gap-5 landscape:gap-3">
                     <div className="text-center">
                       <FlagImage teamName={openingMatch.home_team_name} size="lg" />
-                      <div className="text-sm font-bold mt-2">{openingMatch.home_team_cn}</div>
+                      <div className="text-sm landscape:text-[11px] font-bold mt-2 landscape:mt-1">{openingMatch.home_team_cn}</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white/20">VS</div>
-                      <div className="text-[10px] text-white/30 mt-1">{openingMatch.match_date?.split(' ')[0]}</div>
+                      <div className="text-2xl landscape:text-lg font-bold text-white/20">VS</div>
+                      <div className="text-[10px] landscape:text-[8px] text-white/30 mt-1">{openingMatch.match_date?.split(' ')[0]}</div>
                     </div>
                     <div className="text-center">
                       <FlagImage teamName={openingMatch.away_team_name} size="lg" />
-                      <div className="text-sm font-bold mt-2">{openingMatch.away_team_cn}</div>
+                      <div className="text-sm landscape:text-[11px] font-bold mt-2 landscape:mt-1">{openingMatch.away_team_cn}</div>
                     </div>
                   </div>
-                  <div className="text-[10px] text-white/25 mt-2">{openingMatch.stadium}</div>
+                  <div className="text-[10px] landscape:text-[8px] text-white/25 mt-2 landscape:mt-1">{openingMatch.stadium}</div>
                 </Link>
               </div>
             ) : (
-              <div className="w-full lg:w-auto lg:min-w-[320px]">
-                <div className="glass-card text-center py-8">
-                  <div className="text-sm text-white/30">等待赛程公布</div>
+              <div className="w-full lg:w-auto lg:min-w-[320px] landscape:min-w-0 landscape:max-w-[200px]">
+                <div className="glass-card text-center py-8 landscape:py-4">
+                  <div className="text-sm landscape:text-[11px] text-white/30">等待赛程公布</div>
                 </div>
               </div>
             )}
@@ -159,7 +161,7 @@ export default function HomePage() {
 
       {/* ===== Stats ===== */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 animate-stagger">
+        <div className="grid grid-cols-2 landscape:grid-cols-5 md:grid-cols-5 gap-3 landscape:gap-1.5 animate-stagger">
           {[
             { value: stats.totalTeams || 54, label: '参赛球队', icon: Globe, color: 'text-accent' },
             { value: stats.totalMatches || 136, label: '数据库比赛', icon: CalendarDays, color: 'text-gold' },
@@ -167,24 +169,24 @@ export default function HomePage() {
             { value: stats.totalGoals || 172, label: '2022总进球', icon: Target, color: 'text-warning' },
             { value: stats.totalNews || 17, label: '新闻资讯', icon: Star, color: 'text-purple-400' }
           ].map((item, i) => (
-            <div key={i} className="glass-card text-center group">
-              <item.icon className={`w-5 h-5 ${item.color} mx-auto mb-2 opacity-60 group-hover:opacity-100 transition-opacity`} />
-              <div className={`text-2xl md:text-3xl font-bold ${item.color}`}>{item.value}</div>
-              <div className="text-[11px] text-white/40 mt-1 tracking-wide">{item.label}</div>
+            <div key={i} className="glass-card landscape:!p-2 text-center group">
+              <item.icon className={`w-5 h-5 landscape:w-3.5 landscape:h-3.5 ${item.color} mx-auto mb-2 landscape:mb-1 opacity-60 group-hover:opacity-100 transition-opacity`} />
+              <div className={`text-2xl md:text-3xl landscape:text-base font-bold ${item.color}`}>{item.value}</div>
+              <div className="text-[11px] landscape:text-[8px] text-white/40 mt-1 landscape:mt-0.5 tracking-wide">{item.label}</div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 landscape:grid-cols-3 gap-6 landscape:gap-3">
         {/* ===== Main Content ===== */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 landscape:col-span-2 space-y-6 landscape:space-y-2">
 
           {/* 2026 Upcoming */}
           {upcoming2026.length > 0 && (
             <section>
-              <h2 className="section-title"><CalendarDays className="w-4 h-4" />2026世界杯 · 近期赛程</h2>
-              <div className="space-y-2 animate-stagger">
+              <h2 className="section-title landscape:text-[11px] landscape:mb-2"><CalendarDays className="w-4 h-4 landscape:w-3 landscape:h-3" />2026世界杯 · 近期赛程</h2>
+              <div className="space-y-2 landscape:space-y-1 animate-stagger">
                 {upcoming2026.slice(0, 4).map(m => (
                   <Link key={m.id} to={`/match/${m.id}`} className="glass-card block match-card-hover">
                     <div className="flex items-center">
@@ -220,8 +222,8 @@ export default function HomePage() {
 
           {/* 2022 经典回顾 */}
           <section>
-            <h2 className="section-title"><Trophy className="w-4 h-4" />2022卡塔尔 · 经典回顾</h2>
-            <div className="space-y-3 animate-stagger">
+            <h2 className="section-title landscape:text-[11px] landscape:mb-2"><Trophy className="w-4 h-4 landscape:w-3 landscape:h-3" />2022卡塔尔 · 经典回顾</h2>
+            <div className="space-y-3 landscape:space-y-1 animate-stagger">
               {knockoutMatches.map(m => (
                 <Link key={m.id} to={`/match/${m.id}`} className="glass-card block match-card-hover">
                   <div className="flex items-center justify-between">
@@ -254,27 +256,27 @@ export default function HomePage() {
         </div>
 
         {/* ===== Sidebar ===== */}
-        <div className="space-y-5">
+        <div className="space-y-5 landscape:space-y-2">
           {/* Top Scorers */}
-          <section className="glass-card">
-            <h2 className="section-title"><TrendingUp className="w-4 h-4" />2022射手榜</h2>
-            <div className="space-y-1">
+          <section className="glass-card landscape:!p-2.5">
+            <h2 className="section-title landscape:text-[11px] landscape:mb-1.5"><TrendingUp className="w-4 h-4 landscape:w-3 landscape:h-3" />2022射手榜</h2>
+            <div className="space-y-1 landscape:space-y-0">
               {topScorers.slice(0, 6).map((s, i) => (
                 <Link key={s.id} to={`/team/${s.team_id}`}
-                  className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-xl hover:bg-white/[0.04] transition-colors group">
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                  className="flex items-center gap-3 landscape:gap-1.5 py-2 landscape:py-1 px-2 -mx-2 rounded-xl hover:bg-white/[0.04] transition-colors group">
+                  <span className={`w-6 h-6 landscape:w-5 landscape:h-5 rounded-lg flex items-center justify-center text-[11px] landscape:text-[9px] font-bold shrink-0 ${
                     i === 0 ? 'bg-gold text-dark shadow-lg shadow-gold/30' :
                     i === 1 ? 'bg-white/20 text-white' : 'bg-white/[0.04] text-white/30'
                   }`}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold truncate group-hover:text-gold transition-colors">{s.player_name}</div>
-                    <div className="text-[11px] text-white/35 flex items-center gap-1.5 mt-0.5">
+                    <div className="text-[13px] landscape:text-[10px] font-semibold truncate group-hover:text-gold transition-colors">{s.player_name}</div>
+                    <div className="text-[11px] landscape:text-[8px] text-white/35 flex items-center gap-1.5 mt-0.5 landscape:mt-0">
                       <FlagImage teamName={s.team_name} size="sm" />{s.team_cn}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-lg font-bold text-gold">{s.goals}</div>
-                    <div className="text-[9px] text-white/25">{s.assists}助攻</div>
+                    <div className="text-lg landscape:text-sm font-bold text-gold">{s.goals}</div>
+                    <div className="text-[9px] landscape:text-[7px] text-white/25">{s.assists}助攻</div>
                   </div>
                 </Link>
               ))}
@@ -282,30 +284,30 @@ export default function HomePage() {
           </section>
 
           {/* Latest News */}
-          <section className="glass-card">
-            <h2 className="section-title"><Globe className="w-4 h-4" />最新资讯</h2>
-            <div className="space-y-3">
+          <section className="glass-card landscape:!p-2.5">
+            <h2 className="section-title landscape:text-[11px] landscape:mb-1.5"><Globe className="w-4 h-4 landscape:w-3 landscape:h-3" />最新资讯</h2>
+            <div className="space-y-3 landscape:space-y-1.5">
               {latestNews.slice(0, 6).map(n => (
                 <Link key={n.id} to={`/news/${n.id}`} className="block group">
-                  <h3 className="text-[13px] font-medium leading-snug group-hover:text-gold transition-colors line-clamp-2">{n.title}</h3>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-gold/10 text-gold/70 font-medium">
+                  <h3 className="text-[13px] landscape:text-[10px] font-medium leading-snug group-hover:text-gold transition-colors line-clamp-2">{n.title}</h3>
+                  <div className="flex items-center gap-2 mt-1.5 landscape:mt-0.5">
+                    <span className="text-[9px] landscape:text-[7px] px-1.5 py-0.5 rounded-md bg-gold/10 text-gold/70 font-medium">
                       {n.category === 'match_report' ? '战报' : n.category === 'feature' ? '特写' : n.category === 'award' ? '奖项' : n.category === 'gossip' ? '花边' : n.category === 'transfer' ? '转会' : n.category === 'preview' ? '预告' : '新闻'}
                     </span>
-                    <span className="text-[9px] text-white/20">{(n.published_at || '').split(' ')[0]}</span>
+                    <span className="text-[9px] landscape:text-[7px] text-white/20">{(n.published_at || '').split(' ')[0]}</span>
                   </div>
                 </Link>
               ))}
             </div>
-            <Link to="/news" className="block text-center text-xs text-gold/50 hover:text-gold mt-4 pt-3 border-t border-white/[0.04]">
+            <Link to="/news" className="block text-center text-xs landscape:text-[10px] text-gold/50 hover:text-gold mt-4 landscape:mt-1.5 pt-3 landscape:pt-1.5 border-t border-white/[0.04]">
               查看全部 →
             </Link>
           </section>
 
           {/* 2026 参赛队预览 */}
-          <section className="glass-card">
-            <h2 className="section-title"><Globe className="w-4 h-4" />2026参赛队</h2>
-            <div className="grid grid-cols-4 gap-2">
+          <section className="glass-card landscape:!p-2.5">
+            <h2 className="section-title landscape:text-[11px] landscape:mb-1.5"><Globe className="w-4 h-4 landscape:w-3 landscape:h-3" />2026参赛队</h2>
+            <div className="grid grid-cols-4 landscape:grid-cols-6 gap-2 landscape:gap-1">
               {[
                 ['Mexico', '墨西哥'], ['Canada', '加拿大'], ['USA', '美国'],
                 ['Brazil', '巴西'], ['Argentina', '阿根廷'], ['France', '法国'],

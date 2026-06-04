@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Settings, Edit3, Trash2, Plus, Save, X, RefreshCw, Zap, Target, Star } from 'lucide-react';
-import { adminAPI } from '../services/api';
+import { Settings, Edit3, Trash2, Plus, Save, X, RefreshCw, Zap, Target, Star, LogOut, Lock } from 'lucide-react';
+import { adminAPI, authAPI } from '../services/api';
 
 const statusOptions = ['scheduled', 'live', 'first_half', 'halftime', 'second_half', 'completed'];
 
 export default function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
   const [tab, setTab] = useState('matches');
   const [stats, setStats] = useState(null);
   const [matches, setMatches] = useState([]);
@@ -13,10 +18,49 @@ export default function AdminPage() {
   const [newArticle, setNewArticle] = useState({ title: '', summary: '', content: '', category: 'news', source: '' });
   const [editingMatches, setEditingMatches] = useState({});
 
-  useEffect(() => { adminAPI.getStats().then(r => r.success && setStats(r.data)); loadMatches(); loadNews(); }, []);
+  useEffect(() => {
+    authAPI.check().then(r => {
+      if (r.success) {
+        setAuthenticated(true);
+        loadData();
+      }
+      setChecking(false);
+    });
+  }, []);
+
+  const loadData = () => {
+    adminAPI.getStats().then(r => r.success && setStats(r.data));
+    loadMatches();
+    loadNews();
+  };
 
   const loadMatches = () => adminAPI.getMatches().then(r => r.success && setMatches(r.data));
   const loadNews = () => adminAPI.getNews().then(r => r.success && setNews(r.data));
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!password) return;
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      const r = await authAPI.login(password);
+      if (r.success) {
+        sessionStorage.setItem('admin_token', r.token);
+        setAuthenticated(true);
+        loadData();
+      }
+    } catch (err) {
+      setLoginError(err.response?.data?.message || '登录失败');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await authAPI.logout();
+    sessionStorage.removeItem('admin_token');
+    setAuthenticated(false);
+  };
 
   const handleMatchUpdate = async (id) => {
     const data = editingMatches[id];
@@ -36,11 +80,58 @@ export default function AdminPage() {
 
   const handleDeleteNews = async (id) => { if (!confirm('确定删除？')) return; await adminAPI.deleteNews(id); loadNews(); };
 
+  if (checking) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="glass-card max-w-md w-full text-center space-y-6 p-8">
+          <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8 text-gold" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold">管理员登录</h2>
+            <p className="text-sm text-white/40 mt-1">请输入管理密码以继续</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-3">
+            <input
+              type="password"
+              className="w-full bg-dark border border-white/[0.1] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-gold/40 text-center"
+              placeholder="请输入管理密码"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoFocus
+            />
+            {loginError && <div className="text-xs text-danger">{loginError}</div>}
+            <button
+              type="submit"
+              disabled={loginLoading}
+              className="btn-primary w-full py-3 text-sm font-semibold disabled:opacity-50"
+            >
+              {loginLoading ? '验证中...' : '登录'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-        <Settings className="w-6 h-6 text-gold" /> 后台管理
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
+          <Settings className="w-6 h-6 text-gold" /> 后台管理
+        </h1>
+        <button onClick={handleLogout} className="glass-card !py-2 !px-3 text-white/40 hover:text-danger transition-colors flex items-center gap-1.5 text-xs">
+          <LogOut className="w-3.5 h-3.5" /> 退出
+        </button>
+      </div>
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">

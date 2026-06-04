@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "player_name": "Kylian Mbappe",
+    "team_id": 13,
+    "goals": 8,
+    "assists": 2,
+    "matches_played": 7
+  },
+  {
+    "id": 2,
+    "player_name": "Lionel Messi",
+    "team_id": 9,
+    "goals": 7,
+    "assists": 3,
+    "matches_played": 7
+  },
+  {
+    "id": 3,
+    "player_name": "Olivier Giroud",
+    "team_id": 13,
+    "goals": 4,
+    "assists": 0,
+    "matches_played": 6
+  },
+  {
+    "id": 4,
+    "player_name": "Julian Alvarez",
+    "team_id": 9,
+    "goals": 4,
+    "assists": 0,
+    "matches_played": 7
+  },
+  {
+    "id": 5,
+    "player_name": "Alvaro Morata",
+    "team_id": 17,
+    "goals": 3,
+    "assists": 0,
+    "matches_played": 4
+  },
+  {
+    "id": 6,
+    "player_name": "Marcus Rashford",
+    "team_id": 5,
+    "goals": 3,
+    "assists": 0,
+    "matches_played": 5
+  },
+  {
+    "id": 7,
+    "player_name": "Bukayo Saka",
+    "team_id": 5,
+    "goals": 3,
+    "assists": 0,
+    "matches_played": 4
+  },
+  {
+    "id": 8,
+    "player_name": "Cody Gakpo",
+    "team_id": 4,
+    "goals": 3,
+    "assists": 0,
+    "matches_played": 5
+  },
+  {
+    "id": 9,
+    "player_name": "Richarlison",
+    "team_id": 25,
+    "goals": 3,
+    "assists": 0,
+    "matches_played": 4
+  },
+  {
+    "id": 10,
+    "player_name": "Enner Valencia",
+    "team_id": 2,
+    "goals": 3,
+    "assists": 0,
+    "matches_played": 3
+  }
+]
