@@ -351,5 +351,38 @@
     "cover_url": "",
     "published_at": "2026-06-03T07:14:02.982Z",
     "created_at": "2026-06-03T07:14:02.982Z"
+  },
+  {
+    "id": 34,
+    "title": "World Cup's new rules explained: VAR for corners, ...",
+    "summary": "The International Football Association Board (IFAB) has made some big changes to soccer ahead of the World Cup. But what do they mean?",
+    "content": "The International Football Association Board (IFAB) has made some big changes to soccer ahead of the World Cup. But what do they mean?",
+    "cover_url": "",
+    "category": "news",
+    "source": "ESPN Soccer",
+    "published_at": "2026-06-03T10:01:17.000Z",
+    "created_at": "2026-06-03T10:00:18.788Z"
+  },
+  {
+    "id": 35,
+    "title": "All the 2026 World Cup group stage kit matchups re...",
+    "summary": "Wondering what color shirt you need to wear to support your team in their group games? Find out here.",
+    "content": "Wondering what color shirt you need to wear to support your team in their group games? Find out here.",
+    "cover_url": "",
+    "category": "news",
+    "source": "ESPN Soccer",
+    "published_at": "2026-06-03T10:01:17.000Z",
+    "created_at": "2026-06-03T10:00:18.791Z"
+  },
+  {
+    "id": 36,
+    "title": "Transfer rumors, news: Arsenal, Bayern battle for ...",
+    "summary": "Eintracht Frankfurt full back Nathaniel Brown is of interest to Bayern Munich and Arsenal. Transfer Talk has the latest.",
+    "content": "Eintracht Frankfurt full back Nathaniel Brown is of interest to Bayern Munich and Arsenal. Transfer Talk has the latest.",
+    "cover_url": "",
+    "category": "gossip",
+    "source": "ESPN Soccer",
+    "published_at": "2026-06-03T08:28:46.000Z",
+    "created_at": "2026-06-03T10:00:18.793Z"
   }
 ]
