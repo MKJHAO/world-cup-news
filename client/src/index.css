@@ -3,8 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+  /* 安全区域：env()为主，24px为安卓最小兜底 */
+  /* 使用两层：html用max()，body用padding做兼容 */
+  :root {
+    --safe-top: max(env(safe-area-inset-top, 0px), 24px);
+    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+  }
+
+  html {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  /* 兼容不支持max()的旧WebView */
   body {
     @apply bg-dark text-white antialiased;
+    padding-top: env(safe-area-inset-top, 24px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-image:
       radial-gradient(ellipse at 20% 50%, rgba(26, 71, 42, 0.15) 0%, transparent 50%),

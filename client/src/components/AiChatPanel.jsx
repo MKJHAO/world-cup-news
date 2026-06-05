@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, Send, Loader2, Bot, Trash2, Sparkles, User } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Send, Loader2, Bot, Trash2, Sparkles, User, ChevronLeft } from 'lucide-react';
 import useAiStore from '../stores/aiStore';
 
 const QUICK_ASKS = [
@@ -15,20 +15,27 @@ const STYLES = [
   { value: 'dialect', label: '接地气', icon: '🤝' }
 ];
 
+const SWIPE_THRESHOLD = 80; // 滑动超过80px关闭
+const EDGE_WIDTH = 30; // 从左边30px内开始滑动才有效
+
 export default function AiChatPanel() {
   const { messages, isOpen, isLoading, style, setOpen, setStyle, sendMessage, clearHistory } = useAiStore();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // 自动聚焦输入框
+  // 侧滑手势状态
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStartRef = useRef(null);
+  const panelRef = useRef(null);
+
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
 
-  // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
@@ -46,19 +53,76 @@ export default function AiChatPanel() {
     }
   };
 
+  // 侧滑手势处理
+  const handleTouchStart = useCallback((e) => {
+    const touch = e.touches[0];
+    // 只在左边边缘区域响应（避免和消息滚动冲突）
+    if (touch.clientX < EDGE_WIDTH) {
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY, edge: true };
+    } else {
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY, edge: false };
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!touchStartRef.current) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+
+    // 水平滑动且从边缘开始，或者是面板任何位置的水平滑动（宽容模式）
+    if (dx > 10 && dx > dy && (touchStartRef.current.edge || touchStartRef.current.x < 100)) {
+      setIsSwiping(true);
+      setSwipeOffset(Math.min(dx, 200)); // 最多拖动200px
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (swipeOffset > SWIPE_THRESHOLD) {
+      setOpen(false);
+    }
+    setSwipeOffset(0);
+    setIsSwiping(false);
+    touchStartRef.current = null;
+  }, [swipeOffset, setOpen]);
+
+  // 重置滑动状态
+  useEffect(() => {
+    if (!isOpen) {
+      setSwipeOffset(0);
+      setIsSwiping(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* 移动端遮罩 */}
-      <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setOpen(false)} />
+      <div className="md:hidden fixed inset-0 z-40"
+        style={{ background: `rgba(0,0,0,${0.6 * (1 - swipeOffset / 400)})`, backdropFilter: `blur(${Math.max(0, 3 - swipeOffset / 50)}px)` }}
+        onClick={() => setOpen(false)} />
 
-      {/* 聊天面板 */}
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] bg-card border-l border-white/5 flex flex-col shadow-2xl animate-fadeIn"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      {/* 聊天面板 — 支持侧滑退出 */}
+      <div
+        ref={panelRef}
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] bg-card border-l border-white/5 flex flex-col shadow-2xl"
+        style={{
+          transform: `translateX(${swipeOffset}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.25s ease-out',
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 24px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* 头部 */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0">
           <div className="flex items-center gap-3">
+            {/* 移动端显示返回箭头提示 */}
+            <ChevronLeft className="md:hidden text-white/20" size={18} />
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold to-amber-500 flex items-center justify-center">
               <Sparkles size={18} className="text-dark" />
             </div>
@@ -68,7 +132,6 @@ export default function AiChatPanel() {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {/* 风格选择 */}
             <select
               value={style}
               onChange={e => setStyle(e.target.value)}
@@ -78,20 +141,30 @@ export default function AiChatPanel() {
                 <option key={s.value} value={s.value}>{s.icon} {s.label}</option>
               ))}
             </select>
-            {/* 清空 */}
             <button onClick={clearHistory} className="text-white/20 hover:text-white/50 p-1.5" title="清空对话">
               <Trash2 size={16} />
             </button>
-            {/* 关闭 */}
-            <button onClick={() => setOpen(false)} className="text-white/30 hover:text-white/60 p-1.5">
+            <button onClick={() => setOpen(false)} className="text-white/30 hover:text-white/60 p-1.5" title="关闭">
               <X size={18} />
             </button>
           </div>
         </div>
 
+        {/* 侧滑指示器（仅在滑动时显示） */}
+        {swipeOffset > 0 && (
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+            <div
+              className="flex items-center gap-1 text-white/30 transition-opacity"
+              style={{ opacity: Math.min(1, swipeOffset / SWIPE_THRESHOLD) }}
+            >
+              <ChevronLeft size={28} />
+              <span className="text-xs font-medium">松开关闭</span>
+            </div>
+          </div>
+        )}
+
         {/* 消息区域 */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-          {/* 欢迎消息 */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 overscroll-contain">
           {messages.length === 0 && (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto mb-4">
@@ -100,7 +173,6 @@ export default function AiChatPanel() {
               <p className="text-white font-semibold mb-1">你好，我是AI球探助手！⚽</p>
               <p className="text-white/30 text-sm mb-5">我可以帮你分析球队实力、预测比赛走势、解读赔率数据，随便问！</p>
 
-              {/* 快捷提问 */}
               <div className="grid grid-cols-2 gap-2">
                 {QUICK_ASKS.map((qa, i) => (
                   <button
@@ -115,7 +187,6 @@ export default function AiChatPanel() {
             </div>
           )}
 
-          {/* 消息列表 */}
           {messages.map((msg, i) => (
             <div
               key={i}
@@ -150,7 +221,6 @@ export default function AiChatPanel() {
             </div>
           ))}
 
-          {/* 加载中 */}
           {isLoading && (
             <div className="flex gap-2.5">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gold to-amber-500 flex items-center justify-center flex-shrink-0">
@@ -170,7 +240,7 @@ export default function AiChatPanel() {
         </div>
 
         {/* 输入区域 */}
-        <div className="p-3 border-t border-white/5">
+        <div className="p-3 border-t border-white/5 flex-shrink-0">
           <div className="flex gap-2">
             <textarea
               ref={inputRef}
