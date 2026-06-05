@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Trophy, TrendingUp, ChevronRight, Clock, Target, Zap, Star, CalendarDays, Globe } from 'lucide-react';
 import useAppStore from '../stores/appStore';
 import FlagImage from '../components/FlagImage';
+import useUserStore from '../stores/userStore';
 import HeroCarousel from '../components/HeroCarousel';
 import LiveTicker from '../components/LiveTicker';
 import { fetchStats, matchAPI } from '../services/api';
@@ -158,6 +159,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* ===== 个性化看板（登录用户可见）===== */}
+      <PersonalDashboard />
 
       {/* ===== Stats ===== */}
       {stats && (
@@ -323,6 +327,138 @@ export default function HomePage() {
           </section>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ===== 个性化看板组件 =====
+function PersonalDashboard() {
+  const { isLoggedIn, user, toggleFavoriteTeam } = useUserStore();
+  const [teams, setTeams] = useState([]);
+  const [favNews, setFavNews] = useState([]);
+  const [matches, setMatches] = useState([]);
+
+  // 获取全部球队列表
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetch('/api/teams?limit=100').then(r => r.json()).then(d => {
+      if (d.success) setTeams(d.data);
+    }).catch(() => {});
+  }, [isLoggedIn]);
+
+  // 获取关注球队的比赛
+  useEffect(() => {
+    if (!isLoggedIn || !user?.favorite_teams?.length) return;
+    fetch('/api/matches?tournament=2026&limit=50').then(r => r.json()).then(d => {
+      if (d.success) {
+        const favIds = user.favorite_teams || [];
+        const filtered = (d.data || []).filter(m =>
+          favIds.includes(m.home_team_id) || favIds.includes(m.away_team_id)
+        ).slice(0, 5);
+        setMatches(filtered);
+      }
+    }).catch(() => {});
+  }, [isLoggedIn, user?.favorite_teams]);
+
+  // 获取关注球队的新闻
+  useEffect(() => {
+    if (!isLoggedIn || !user?.favorite_teams?.length) return;
+    fetch('/api/news?limit=20').then(r => r.json()).then(d => {
+      if (d.success) {
+        const favIds = user.favorite_teams || [];
+        const filtered = (d.data || []).filter(n => {
+          const txt = (n.title + n.summary).toLowerCase();
+          return favIds.some(id => {
+            const t = teams.find(t => t.id === id);
+            return t && (txt.includes(t.name?.toLowerCase()) || txt.includes(t.name_cn));
+          });
+        }).slice(0, 3);
+        setFavNews(filtered);
+      }
+    }).catch(() => {});
+  }, [isLoggedIn, user?.favorite_teams, teams]);
+
+  if (!isLoggedIn) return null;
+
+  return (
+    <div className="glass-card mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="section-title mb-0 flex items-center gap-1">
+          <Star size={16} className="text-gold" /> 我的关注
+        </h2>
+        <span className="text-[10px] text-white/20">
+          {user?.favorite_teams?.length || 0}/5 支球队
+        </span>
+      </div>
+
+      {/* 球队关注选择器 */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {teams.slice(0, 32).map(t => {
+          const isFav = (user?.favorite_teams || []).includes(t.id);
+          return (
+            <button
+              key={t.id}
+              onClick={() => toggleFavoriteTeam(t.id)}
+              className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                isFav
+                  ? 'bg-gold/15 border-gold/30 text-gold'
+                  : 'bg-white/[0.02] border-white/[0.06] text-white/30 hover:border-white/[0.15]'
+              }`}
+            >
+              {isFav ? '★' : '☆'} {t.name_cn || t.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 关注内容 */}
+      {(user?.favorite_teams || []).length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* 关注球队的比赛 */}
+          <div>
+            <h4 className="text-xs text-white/40 mb-2">📅 近期比赛</h4>
+            {matches.length === 0 ? (
+              <p className="text-xs text-white/15">暂无关注球队的比赛</p>
+            ) : (
+              <div className="space-y-1.5">
+                {matches.map(m => (
+                  <Link key={m.id} to={`/match/${m.id}`}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-xs">
+                    <span className="text-white/60 w-16 truncate">{m._homeTeam?.name_cn}</span>
+                    {m.status === 'completed'
+                      ? <span className="text-white font-bold">{m.home_score}-{m.away_score}</span>
+                      : <span className="text-white/20">vs</span>}
+                    <span className="text-white/60 w-16 truncate">{m._awayTeam?.name_cn}</span>
+                    <span className="text-white/20 ml-auto">{m.match_date?.split(' ')[0]}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 相关新闻 */}
+          <div>
+            <h4 className="text-xs text-white/40 mb-2">📰 相关新闻</h4>
+            {favNews.length === 0 ? (
+              <p className="text-xs text-white/15">暂无相关新闻</p>
+            ) : (
+              <div className="space-y-1.5">
+                {favNews.map(n => (
+                  <Link key={n.id} to={`/news/${n.id}`}
+                    className="block p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+                    <p className="text-xs text-white/70 truncate">{n.title}</p>
+                    <p className="text-[10px] text-white/20 mt-0.5">{n.category}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-white/20 text-center py-4">
+          点击上方球队名称关注，获取个性化比赛和新闻推荐
+        </p>
+      )}
     </div>
   );
 }

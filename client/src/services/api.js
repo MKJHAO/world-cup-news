@@ -110,7 +110,8 @@ function getUserHeaders() {
 export const userAPI = {
   register: (nickname) => api.post('/users/register', { nickname }).then(r => r.data),
   getMe: () => api.get('/users/me', { headers: getUserHeaders() }).then(r => r.data),
-  getById: (id) => api.get(`/users/${id}`).then(r => r.data)
+  getById: (id) => api.get(`/users/${id}`).then(r => r.data),
+  updateProfile: (data) => api.put('/users/me', data, { headers: getUserHeaders() }).then(r => r.data)
 };
 
 // === 预测竞猜 API ===

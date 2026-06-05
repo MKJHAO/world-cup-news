@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Target, Zap, Shield, AlertTriangle, ArrowLeft, BarChart3, Loader2, X } from 'lucide-react';
 import { predictionAPI } from '../services/api';
 import FlagImage from '../components/FlagImage';
+import TeamRadar from '../components/TeamRadar';
 
 export default function PredictionPage() {
   const navigate = useNavigate();
@@ -399,34 +400,26 @@ function TeamDetailContent({ teamPred, teamRadar, detailLoading, detailError, se
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 雷达图 */}
+        {/* 雷达图 — SVG多边形 */}
         {teamRadar && (
-          <div className="bg-white/[0.02] rounded-xl p-4">
-            <h3 className="text-[11px] text-white/30 uppercase tracking-wider mb-3">实力雷达</h3>
-            <div className="space-y-3">
-              {[
-                { key: 'attack', label: '进攻', color: '#ef4444' },
-                { key: 'defense', label: '防守', color: '#3b82f6' },
-                { key: 'experience', label: '经验', color: '#f59e0b' },
-                { key: 'form', label: '状态', color: '#10b981' }
-              ].map(({ key, label, color }) => (
-                <div key={key} className="flex items-center gap-3">
-                  <span className="text-[11px] text-white/50 w-8 shrink-0">{label}</span>
-                  <div className="flex-1 h-2 rounded-full bg-white/[0.04] overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${teamRadar[key] || 0}%`, background: color }} />
-                  </div>
-                  <span className="text-[11px] text-white/70 w-8 text-right font-bold">{teamRadar[key] || 0}</span>
-                </div>
-              ))}
+          <TeamRadar data={teamRadar} />
+        )}
+
+        {/* 综合实力（雷达图已包含综合维度，这里补充数值） */}
+        {teamPred?.strength && (
+          <div className="bg-white/[0.02] rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <span className="text-[11px] text-white/30 uppercase tracking-wider">综合实力指数</span>
+              <p className="text-xs text-white/40 mt-0.5">基于FIFA排名+历史战绩+赔率</p>
             </div>
-            <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between">
-              <span className="text-[11px] text-white/40">综合实力</span>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-32 rounded-full bg-white/[0.04] overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-gold to-yellow-500" style={{ width: `${teamPred.strength || 0}%` }} />
-                </div>
-                <span className="text-gold font-bold">{teamPred.strength}</span>
+            <div className="flex items-center gap-3">
+              <div className="h-3 w-28 rounded-full bg-white/[0.04] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-gold to-yellow-500 transition-all duration-700"
+                  style={{ width: `${teamPred.strength || 0}%` }}
+                />
               </div>
+              <span className="text-gold text-2xl font-bold">{teamPred.strength}</span>
             </div>
           </div>
         )}

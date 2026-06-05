@@ -66,3 +66,23 @@ export function subscribeGroup(groupName) {
   const s = getSocket();
   if (s.connected) s.emit('subscribe_group', groupName);
 }
+
+// 发送聊天消息
+export function sendChatMessage(matchId, message, userName, userId) {
+  const s = getSocket();
+  if (s.connected) {
+    s.emit('chat_message', { matchId, message, userName, userId });
+  }
+}
+
+// 获取历史聊天消息（REST API回退）
+export async function fetchChatHistory(matchId) {
+  try {
+    const res = await fetch(`/api/matches/${matchId}/chat`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.success ? data.data : [];
+    }
+  } catch {}
+  return [];
+}

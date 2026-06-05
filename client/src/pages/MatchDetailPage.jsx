@@ -7,6 +7,7 @@ import { ErrorState, LoadingSkeleton } from '../components/UIComponents';
 import StatsPanel from '../components/StatsBar';
 import ShareButton from '../components/ShareButton';
 import OddsPanel from '../components/OddsPanel';
+import LiveChat from '../components/LiveChat';
 
 const stageLabels = { group: '小组赛', round16: '1/8决赛', quarter: '1/4决赛', semi: '半决赛', third: '季军赛', final: '决赛' };
 const eventIcons = { goal: '⚽', yellow_card: '🟨', red_card: '🟥', substitution: '🔄', penalty_goal: '🎯', own_goal: '😱' };
@@ -170,6 +171,9 @@ export default function MatchDetailPage() {
 
       {/* Odds Analysis */}
       <OddsPanel matchId={parseInt(id)} homeTeam={m.home_team_cn} awayTeam={m.away_team_cn} />
+
+      {/* 球迷聊天室 */}
+      <LiveChat matchId={parseInt(id)} matchStatus={m.status} />
 
       <div className="flex gap-4 justify-center">
         <Link to={`/team/${m.home_team_id}`} className="btn-outline text-sm inline-flex items-center gap-1.5">

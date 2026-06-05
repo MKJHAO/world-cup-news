@@ -114,5 +114,6 @@ const userPredictions = getCollection('user_predictions');
 const predictionGroups = getCollection('prediction_groups');
 const groupMemberships = getCollection('group_memberships');
 const bracketPredictions = getCollection('bracket_predictions');
+const matchMessages = getCollection('match_messages');
 
-module.exports = { teams, players, matches, matchEvents, matchStats, standings, news, goalScorers, odds, gossip, users, userPredictions, predictionGroups, groupMemberships, bracketPredictions, getCollection };
+module.exports = { teams, players, matches, matchEvents, matchStats, standings, news, goalScorers, odds, gossip, users, userPredictions, predictionGroups, groupMemberships, bracketPredictions, matchMessages, getCollection };

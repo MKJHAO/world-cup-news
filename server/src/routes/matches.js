@@ -32,6 +32,15 @@ router.get('/bracket', (req, res) => {
   res.json({ success: true, data: matches });
 });
 
+// 比赛聊天历史
+router.get('/:id/chat', (req, res) => {
+  const { matchMessages } = require('../models/database');
+  const msgs = matchMessages.query(m => m.match_id === parseInt(req.params.id))
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    .slice(-200);
+  res.json({ success: true, data: msgs });
+});
+
 // 比赛统计数据
 router.get('/:id/statistics', (req, res) => {
   const statsService = require('../services/statsService');

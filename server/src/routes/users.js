@@ -19,6 +19,16 @@ router.get('/me', userService.userAuth, (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// 更新个人资料（关注球队等）
+router.put('/me', userService.userAuth, (req, res) => {
+  try {
+    const user = userService.updateProfile(req.user.id, req.body);
+    res.json({ success: true, data: user });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
 // 获取用户公开信息
 router.get('/:id', (req, res) => {
   const user = userService.getById(parseInt(req.params.id));

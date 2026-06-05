@@ -102,10 +102,39 @@ io.on('connection', (socket) => {
 
   socket.on('subscribe_match', (matchId) => {
     socket.join(`match_${matchId}`);
+    console.log(`  📺 订阅比赛房间: match_${matchId}`);
   });
 
   socket.on('subscribe_group', (groupName) => {
     socket.join(`group_${groupName}`);
+  });
+
+  // 比赛聊天消息
+  socket.on('chat_message', (data) => {
+    const { matchId, message, userName, userId } = data || {};
+    if (!matchId || !message || !message.trim()) return;
+
+    const trimmed = message.trim().slice(0, 500);
+    const { matchMessages } = require('./models/database');
+    const msgRecord = matchMessages.insert({
+      match_id: parseInt(matchId),
+      user_id: userId || 0,
+      user_name: (userName || '球迷').slice(0, 20),
+      message: trimmed,
+      created_at: new Date().toISOString()
+    });
+
+    const payload = {
+      id: msgRecord.id,
+      match_id: msgRecord.match_id,
+      user_name: msgRecord.user_name,
+      user_id: msgRecord.user_id,
+      message: msgRecord.message,
+      created_at: msgRecord.created_at
+    };
+
+    // 广播给该比赛房间内所有客户端
+    io.to(`match_${matchId}`).emit('match_chat_message', payload);
   });
 
   socket.on('disconnect', () => {

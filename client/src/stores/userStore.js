@@ -58,6 +58,29 @@ const useUserStore = create((set, get) => ({
     if (user) {
       set({ user: { ...user, total_points: (user.total_points || 0) + points } });
     }
+  },
+
+  // 切换关注球队
+  toggleFavoriteTeam: async (teamId) => {
+    const { user } = get();
+    if (!user) return;
+    const favs = user.favorite_teams || [];
+    const updated = favs.includes(teamId)
+      ? favs.filter(id => id !== teamId)
+      : [...favs, teamId].slice(0, 5); // 最多关注5支
+    set({ user: { ...user, favorite_teams: updated } });
+    // 异步同步到服务器
+    try { await userAPI.updateProfile({ favorite_teams: updated }); } catch {}
+  },
+
+  // 同步资料到服务器
+  updateProfile: async (data) => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      const res = await userAPI.updateProfile(data);
+      if (res.success) set({ user: { ...user, ...res.data } });
+    } catch {}
   }
 }));
 
