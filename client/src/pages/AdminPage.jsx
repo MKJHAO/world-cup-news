@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Settings, Edit3, Trash2, Plus, Save, X, RefreshCw, Zap, Target, Star, LogOut, Lock } from 'lucide-react';
-import { adminAPI, authAPI } from '../services/api';
+import { Settings, Edit3, Trash2, Plus, Save, X, RefreshCw, Zap, Target, Star, LogOut, Lock, Play, Square } from 'lucide-react';
+import { adminAPI, authAPI, simulatorAPI } from '../services/api';
 
 const statusOptions = ['scheduled', 'live', 'first_half', 'halftime', 'second_half', 'completed'];
 
@@ -18,6 +18,11 @@ export default function AdminPage() {
   const [newArticle, setNewArticle] = useState({ title: '', summary: '', content: '', category: 'news', source: '' });
   const [editingMatches, setEditingMatches] = useState({});
 
+  // 模拟引擎状态
+  const [simStatus, setSimStatus] = useState({ count: 0, sims: [] });
+  const [simSpeed, setSimSpeed] = useState(60);
+  const [simLoading, setSimLoading] = useState(false);
+
   useEffect(() => {
     authAPI.check().then(r => {
       if (r.success) {
@@ -32,10 +37,38 @@ export default function AdminPage() {
     adminAPI.getStats().then(r => r.success && setStats(r.data));
     loadMatches();
     loadNews();
+    loadSimStatus();
   };
 
   const loadMatches = () => adminAPI.getMatches().then(r => r.success && setMatches(r.data));
   const loadNews = () => adminAPI.getNews().then(r => r.success && setNews(r.data));
+  const loadSimStatus = () => simulatorAPI.getStatus().then(r => r.success && setSimStatus(r.data)).catch(() => {});
+
+  // 模拟控制
+  const handleSimStartAll = async () => {
+    setSimLoading(true);
+    await simulatorAPI.startAll(simSpeed);
+    await loadSimStatus();
+    await loadMatches();
+    setSimLoading(false);
+  };
+
+  const handleSimStopAll = async () => {
+    setSimLoading(true);
+    await simulatorAPI.stopAll();
+    await loadSimStatus();
+    setSimLoading(false);
+  };
+
+  const handleSimStartMatch = async (matchId) => {
+    await simulatorAPI.start(matchId, simSpeed);
+    await loadSimStatus();
+  };
+
+  const handleSimStopMatch = async (matchId) => {
+    await simulatorAPI.stop(matchId);
+    await loadSimStatus();
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -160,10 +193,50 @@ export default function AdminPage() {
       </div>
 
       {tab === 'matches' && (
+        <div className="space-y-3">
+          {/* 模拟控制栏 */}
+          <div className="glass-card flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-red-400">
+              <span className={`w-2 h-2 rounded-full ${simStatus.count > 0 ? 'bg-red-500 animate-live-pulse' : 'bg-white/20'}`} />
+              🎮 模拟引擎
+              <span className="text-white/30 font-normal ml-1">({simStatus.count}场活跃)</span>
+            </div>
+            <select
+              value={simSpeed}
+              onChange={e => setSimSpeed(parseInt(e.target.value))}
+              className="bg-dark border border-white/[0.1] rounded-lg px-2 py-1.5 text-xs text-white/70"
+            >
+              <option value={1}>1x 正常</option>
+              <option value={6}>6x 加速</option>
+              <option value={30}>30x 快速</option>
+              <option value={60}>60x 演示</option>
+            </select>
+            <button
+              onClick={handleSimStartAll}
+              disabled={simLoading}
+              className="bg-red-600/15 hover:bg-red-600/25 border border-red-500/30 text-red-400 hover:text-red-300 text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+            >
+              <Play className="w-3 h-3" /> 模拟全部
+            </button>
+            <button
+              onClick={handleSimStopAll}
+              disabled={simLoading}
+              className="bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-white/40 hover:text-white/70 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors disabled:opacity-50"
+            >
+              <Square className="w-3 h-3" /> 停止全部
+            </button>
+            <button
+              onClick={loadSimStatus}
+              className="text-white/20 hover:text-white/60 transition-colors ml-auto"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </button>
+          </div>
+
         <div className="glass-card !p-0 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
             <h2 className="font-bold text-sm">比赛列表</h2>
-            <button onClick={loadMatches} className="text-white/30 hover:text-white/70 transition-colors"><RefreshCw className="w-3.5 h-3.5" /></button>
+            <button onClick={() => { loadMatches(); loadSimStatus(); }} className="text-white/30 hover:text-white/70 transition-colors"><RefreshCw className="w-3.5 h-3.5" /></button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -211,8 +284,21 @@ export default function AdminPage() {
                           <button onClick={() => setEditingMatches(p => { const n = { ...p }; delete n[m.id]; return n; })} className="text-white/30 hover:text-white"><X className="w-3.5 h-3.5" /></button>
                         </span>
                       ) : (
-                        <button onClick={() => setEditingMatches(p => ({ ...p, [m.id]: { status: m.status, home_score: m.home_score, away_score: m.away_score, home_penalty: m.home_penalty, away_penalty: m.away_penalty }}))}
-                          className="text-white/25 hover:text-gold transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                        <span className="inline-flex items-center gap-1.5">
+                          <button onClick={() => setEditingMatches(p => ({ ...p, [m.id]: { status: m.status, home_score: m.home_score, away_score: m.away_score, home_penalty: m.home_penalty, away_penalty: m.away_penalty }}))}
+                            className="text-white/25 hover:text-gold transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
+                          {m.status !== 'completed' && (
+                            simStatus.sims?.some(s => s.matchId === m.id) ? (
+                              <button onClick={() => handleSimStopMatch(m.id)} className="text-red-400/60 hover:text-red-400 transition-colors" title="停止模拟">
+                                <Square className="w-3 h-3" />
+                              </button>
+                            ) : (
+                              <button onClick={() => handleSimStartMatch(m.id)} className="text-accent/40 hover:text-accent transition-colors" title="启动模拟">
+                                <Play className="w-3 h-3" />
+                              </button>
+                            )
+                          )}
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -220,6 +306,7 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       )}
 

@@ -32,6 +32,16 @@ router.get('/bracket', (req, res) => {
   res.json({ success: true, data: matches });
 });
 
+// 进行中的比赛 (直播)
+router.get('/live', (req, res) => {
+  const { matches } = require('../models/database');
+  const liveMatches = matches.query(m =>
+    ['live', 'first_half', 'halftime', 'second_half'].includes(m.status)
+  );
+  const enriched = liveMatches.map(m => matchService._enrich(m));
+  res.json({ success: true, data: enriched });
+});
+
 // 比赛聊天历史
 router.get('/:id/chat', (req, res) => {
   const { matchMessages } = require('../models/database');

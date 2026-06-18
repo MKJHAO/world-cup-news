@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Clock, MapPin, Users, Timer, ChevronRight, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Users, Timer, ChevronRight, BarChart3, Volume2, VolumeX, Bot } from 'lucide-react';
 import useAppStore from '../stores/appStore';
+import { getSocket } from '../hooks/useSocket';
+import { aiAPI } from '../services/api';
 import FlagImage from '../components/FlagImage';
 import { ErrorState, LoadingSkeleton } from '../components/UIComponents';
 import StatsPanel from '../components/StatsBar';
@@ -21,6 +23,65 @@ export default function MatchDetailPage() {
   const [error, setError] = useState(false);
   const [matchStats, setMatchStats] = useState(null);
 
+  // AI解说状态
+  const [commentaryOn, setCommentaryOn] = useState(false);
+  const [commentary, setCommentary] = useState([]);
+  const [commentaryLoading, setCommentaryLoading] = useState(false);
+
+  // AI解说轮询（使用专用解说端点，不污染聊天历史）
+  useEffect(() => {
+    if (!commentaryOn) return;
+
+    const fetchCommentary = async () => {
+      try {
+        const m = currentMatch;
+        if (!m) return;
+        const r = await aiAPI.getCommentary({
+          matchId: parseInt(id),
+          homeTeam: m.home_team_cn,
+          awayTeam: m.away_team_cn,
+          homeScore: m.home_score || 0,
+          awayScore: m.away_score || 0,
+          status: m.status,
+          minute: Math.floor(m.match_minute || 0)
+        });
+        if (r?.data?.text) {
+          setCommentary(prev => [...prev.slice(-19), { text: r.data.text, time: new Date().toLocaleTimeString() }]);
+        }
+      } catch (e) { /* ignore */ }
+    };
+
+    fetchCommentary();
+    const timer = setInterval(fetchCommentary, 8000);
+    return () => clearInterval(timer);
+  }, [commentaryOn, id]);
+
+  // WebSocket AI解说推送
+  useEffect(() => {
+    const s = getSocket();
+    const handler = (event, data) => {
+      if (event.startsWith('match_') && event.endsWith('_commentary') && data?.match_id === parseInt(id)) {
+        setCommentary(prev => [...prev.slice(-19), { text: data.text, time: new Date().toLocaleTimeString() }]);
+      }
+    };
+    s.onAny(handler);
+    return () => s.offAny(handler);
+  }, [id]);
+
+  // AI赛后总结
+  const [postSummary, setPostSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  const handlePostSummary = async () => {
+    setSummaryLoading(true);
+    try {
+      const r = await aiAPI.getPostMatchSummary(parseInt(id));
+      if (r?.data) setPostSummary(r.data);
+    } catch (e) { /* ignore */ }
+    setSummaryLoading(false);
+  };
+
+  // 初始数据加载
   useEffect(() => {
     setError(false); setLoading(true); setMatchStats(null);
     fetchMatchById(parseInt(id))
@@ -31,6 +92,33 @@ export default function MatchDetailPage() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  // WebSocket 实时更新
+  const { updateCurrentMatch, addMatchEvent } = useAppStore();
+  useEffect(() => {
+    const s = getSocket();
+    const matchId = parseInt(id);
+
+    const handleMatchUpdate = (updatedMatch) => {
+      if (updatedMatch.id === matchId) {
+        updateCurrentMatch(updatedMatch);
+      }
+    };
+
+    const handleEventAdded = (event) => {
+      if (event.match_id === matchId) {
+        addMatchEvent(event);
+      }
+    };
+
+    s.on('match_updated', handleMatchUpdate);
+    s.on('match_event_added', handleEventAdded);
+
+    return () => {
+      s.off('match_updated', handleMatchUpdate);
+      s.off('match_event_added', handleEventAdded);
+    };
   }, [id]);
 
   if (loading) return <div className="max-w-3xl mx-auto py-10"><LoadingSkeleton count={4} /></div>;
@@ -70,6 +158,12 @@ export default function MatchDetailPage() {
               isLive ? 'bg-red-600/20 text-red-400 animate-live-pulse' :
               isCompleted ? 'bg-white/[0.06] text-white/40' : 'bg-accent/15 text-accent'
             }`}>{isLive ? '● LIVE' : isCompleted ? 'FT' : '即将开始'}</span>
+            {isLive && (m.match_minute || 0) > 0 && (
+              <span className="text-xs text-red-400 font-mono font-bold">{Math.floor(m.match_minute)}'</span>
+            )}
+            {m.status === 'halftime' && (
+              <span className="text-xs text-warning font-bold">中场休息</span>
+            )}
             <span className="text-xs text-white/30">{m.group_name ? `${m.group_name}组 · ` : ''}{stageLabels[m.stage]}</span>
           </div>
 
@@ -118,10 +212,78 @@ export default function MatchDetailPage() {
         </div>
       </div>
 
-      {/* Events */}
-      {isCompleted && (m.events || []).length > 0 && (
+      {/* AI解说/赛后总结控制栏 */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {isCompleted && (
+          <button
+            onClick={handlePostSummary}
+            disabled={summaryLoading}
+            className="glass-card flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gold hover:text-yellow-300 border border-gold/20 hover:border-gold/40 transition-all disabled:opacity-50"
+          >
+            {summaryLoading ? (
+              <span className="w-4 h-4 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+            ) : (
+              <Bot className="w-4 h-4" />
+            )}
+            {summaryLoading ? '生成中...' : postSummary ? '🤖 重新生成赛事解说' : '🤖 AI赛事解说'}
+          </button>
+        )}
+        {isLive && (
+          <button
+            onClick={() => setCommentaryOn(!commentaryOn)}
+            className={`glass-card flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all ${
+              commentaryOn
+                ? 'text-accent border border-accent/30 bg-accent/5'
+                : 'text-white/40 hover:text-white/70 border border-white/[0.08]'
+            }`}
+          >
+            {commentaryOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            {commentaryOn ? '🤖 AI解说中' : '🤖 开启AI解说'}
+          </button>
+        )}
+      </div>
+
+      {/* AI解说面板 */}
+      {commentaryOn && commentary.length > 0 && (
+        <div className="glass-card border-l-2 border-l-accent">
+          <div className="flex items-center gap-2 mb-3">
+            <Bot className="w-4 h-4 text-accent" />
+            <h2 className="text-sm font-bold text-accent">AI 实时解说</h2>
+            <span className="text-[10px] text-white/20 ml-auto">{commentary.length}条</span>
+          </div>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {commentary.map((c, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm py-1.5 border-b border-white/[0.03] last:border-0 event-slide-in">
+                <span className="text-[10px] text-white/25 shrink-0 mt-0.5 font-mono">{c.time}</span>
+                <p className="text-white/70 text-[13px] leading-relaxed">{c.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* AI 赛后总结（完赛比赛） */}
+      {postSummary && (
+        <div className="glass-card border-l-2 border-l-gold">
+          <div className="flex items-center gap-2 mb-3">
+            <Bot className="w-4 h-4 text-gold" />
+            <h2 className="text-sm font-bold text-gold">{postSummary.title || 'AI 赛事解说'}</h2>
+          </div>
+          <div className="prose prose-invert prose-sm max-w-none">
+            <p className="text-white/80 text-[14px] leading-relaxed whitespace-pre-line">{postSummary.content}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Events — 比赛进行中或已结束时始终展示 */}
+      {(isCompleted || isLive) && (
         <div className="glass-card">
           <h2 className="section-title"><Timer className="w-4 h-4" />比赛事件</h2>
+          {(m.events || []).length === 0 ? (
+            <div className="text-center py-6 text-xs text-white/25">
+              {isLive ? '⏳ 比赛进行中，事件实时更新...' : '暂无比赛事件记录'}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
@@ -156,17 +318,27 @@ export default function MatchDetailPage() {
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 
       {/* Match Statistics */}
-      {isCompleted && matchStats && matchStats.length >= 2 && (
-        <StatsPanel
-          homeStats={matchStats.find(s => s.team_id === m.home_team_id)}
-          awayStats={matchStats.find(s => s.team_id === m.away_team_id)}
-          homeColor={m.home_color || '#c4922e'}
-          awayColor={m.away_color || '#4b5563'}
-        />
+      {(isCompleted || isLive) && (
+        matchStats && matchStats.length >= 2 ? (
+          <StatsPanel
+            homeStats={matchStats.find(s => s.team_id === m.home_team_id)}
+            awayStats={matchStats.find(s => s.team_id === m.away_team_id)}
+            homeColor={m.home_color || '#c4922e'}
+            awayColor={m.away_color || '#4b5563'}
+          />
+        ) : (
+          <div className="glass-card text-center py-6">
+            <BarChart3 className="w-5 h-5 text-white/15 mx-auto mb-2" />
+            <p className="text-xs text-white/25">
+              {isLive ? '📊 统计数据将在比赛结束后生成' : '暂无统计数据'}
+            </p>
+          </div>
+        )
       )}
 
       {/* Odds Analysis */}

@@ -12,7 +12,7 @@ export function getSocket() {
 }
 
 export function useSocket() {
-  const { setConnected, updateMatchInList } = useAppStore();
+  const { setConnected, updateMatchInList, addMatchEvent } = useAppStore();
 
   useEffect(() => {
     const s = getSocket();
@@ -20,6 +20,9 @@ export function useSocket() {
     s.on('connect', () => setConnected(true));
     s.on('disconnect', () => setConnected(false));
     s.on('match_updated', (match) => updateMatchInList(match));
+
+    // 比赛事件实时推送
+    s.on('match_event_added', (event) => addMatchEvent(event));
 
     // AI实时解说
     s.on('ai_commentary', (data) => {
@@ -49,6 +52,7 @@ export function useSocket() {
       s.off('connect');
       s.off('disconnect');
       s.off('match_updated');
+      s.off('match_event_added');
       s.off('ai_commentary');
       s.off('prediction_scored');
     };

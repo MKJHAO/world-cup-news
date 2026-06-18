@@ -97,24 +97,51 @@ class AiService {
     const awayTeam = teams.getById(match.away_team_id);
     const events = matchEvents.query(e => e.match_id === matchId);
 
+    // 获取真实统计数据
+    const { matchStats } = require('../models/database');
+    const stats = matchStats.query(s => s.match_id === matchId);
+    const homeStats = stats.find(s => s.team_id === match.home_team_id);
+    const awayStats = stats.find(s => s.team_id === match.away_team_id);
+
     const matchContext = {
       home: { name: homeTeam?.name, name_cn: homeTeam?.name_cn },
       away: { name: awayTeam?.name, name_cn: awayTeam?.name_cn },
-      result: { home_score: match.home_score, away_score: match.away_score },
-      events: events.slice(0, 20).map(e => ({ type: e.event_type, player: e.player_name, minute: e.minute, team: e.team_type })),
+      result: {
+        home_score: match.home_score, away_score: match.away_score,
+        home_penalty: match.home_penalty, away_penalty: match.away_penalty
+      },
+      statistics: homeStats && awayStats ? {
+        home: { possession: homeStats.possession, shots: homeStats.shots_total, shots_on_target: homeStats.shots_on_target, corners: homeStats.corners, fouls: homeStats.fouls, xg: homeStats.xg, passes: homeStats.passes, pass_accuracy: homeStats.pass_accuracy },
+        away: { possession: awayStats.possession, shots: awayStats.shots_total, shots_on_target: awayStats.shots_on_target, corners: awayStats.corners, fouls: awayStats.fouls, xg: awayStats.xg, passes: awayStats.passes, pass_accuracy: awayStats.pass_accuracy }
+      } : null,
+      events: events.slice(0, 20).map(e => ({
+        type: e.event_type, player: e.player_name, minute: e.minute, team: e.team_id === match.home_team_id ? 'home' : 'away', extra: e.extra_info || ''
+      })),
       stage: match.stage,
-      stadium: match.stadium
+      stadium: match.stadium,
+      attendance: match.attendance
     };
 
-    const prompt = '你是一位足球评论员。请根据比赛数据写一篇赛后战报总结（200-400字），包括：比赛过程回顾、关键时刻点评、球员表现评价、对后续比赛的影响。使用中文。';
+    const prompt = `你是一位资深足球评论员。请根据以下真实比赛数据，撰写一篇赛后战报总结（300-500字）。
+
+要求：
+1. 基于真实事件描述比赛过程（不要编造不存在的事件）
+2. 引用统计数据（控球率、射门、xG等）进行分析
+3. 点评关键球员表现
+4. 如果有点球大战，特别说明
+5. 使用中文，专业但不枯燥`;
 
     try {
       const content = await this._callLLM([
         { role: 'system', content: prompt },
-        { role: 'user', content: `比赛数据：\n${JSON.stringify(matchContext, null, 2)}` }
-      ], 1200);
+        { role: 'user', content: `以下是比赛的真实数据，请基于这些数据生成赛后战报：\n${JSON.stringify(matchContext, null, 2)}` }
+      ], 1500);
 
-      return { title: `${homeTeam?.name_cn || homeTeam?.name} ${match.home_score}-${match.away_score} ${awayTeam?.name_cn || awayTeam?.name} 赛后战报`, content };
+      const title = match.home_penalty > 0 || match.away_penalty > 0
+        ? `${homeTeam?.name_cn || homeTeam?.name} ${match.home_score}-${match.away_score} ${awayTeam?.name_cn || awayTeam?.name}（点球 ${match.home_penalty}-${match.away_penalty}）赛后战报`
+        : `${homeTeam?.name_cn || homeTeam?.name} ${match.home_score}-${match.away_score} ${awayTeam?.name_cn || awayTeam?.name} 赛后战报`;
+
+      return { title, content };
     } catch (e) {
       console.error('生成赛后报告失败:', e.message);
       return null;

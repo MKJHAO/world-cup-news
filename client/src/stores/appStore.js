@@ -105,9 +105,33 @@ const useAppStore = create((set, get) => ({
   updateMatchInList: (updatedMatch) => {
     set(state => ({
       matches: state.matches.map(m => m.id === updatedMatch.id ? { ...m, ...updatedMatch } : m),
-      todayMatches: state.todayMatches.map(m => m.id === updatedMatch.id ? { ...m, ...updatedMatch } : m)
+      todayMatches: state.todayMatches.map(m => m.id === updatedMatch.id ? { ...m, ...updatedMatch } : m),
+      // 同步更新当前比赛（如果正在详情页查看）
+      currentMatch: state.currentMatch?.id === updatedMatch.id
+        ? { ...state.currentMatch, ...updatedMatch }
+        : state.currentMatch
     }));
-  }
+  },
+
+  updateCurrentMatch: (match) => set(state => ({
+    currentMatch: state.currentMatch?.id === match.id
+      ? { ...state.currentMatch, ...match }
+      : state.currentMatch
+  })),
+
+  addMatchEvent: (event) => set(state => ({
+    matchEvents: state.matchEvents.some(e => e.id === event.id)
+      ? state.matchEvents
+      : [...state.matchEvents, event].sort((a, b) => a.minute - b.minute),
+    currentMatch: state.currentMatch?.id === event.match_id
+      ? {
+          ...state.currentMatch,
+          events: (state.currentMatch.events || []).some(e => e.id === event.id)
+            ? state.currentMatch.events
+            : [...(state.currentMatch.events || []), event].sort((a, b) => a.minute - b.minute)
+        }
+      : state.currentMatch
+  }))
 }));
 
 export default useAppStore;

@@ -21,6 +21,7 @@ function saveHistory(msgs) {
 
 const useAiStore = create((set, get) => ({
   messages: loadHistory(),
+  commentaryMessages: [],  // 解说消息独立存储，不混入聊天历史
   isOpen: false,
   isLoading: false,
   style: 'professional',
@@ -39,13 +40,15 @@ const useAiStore = create((set, get) => ({
 
   sendMessage: async (text) => {
     const { messages, style } = get();
+    // 只传纯粹的聊天消息（不含解说），避免污染LLM上下文
+    const chatOnly = messages.filter(m => !m.isCommentary);
     const userMsg = { role: 'user', content: text, timestamp: Date.now() };
-    const newMsgs = [...messages, userMsg];
+    const newMsgs = [...chatOnly, userMsg];
     set({ messages: newMsgs, isLoading: true });
     saveHistory(newMsgs);
 
     try {
-      const res = await aiAPI.chat(text, messages.slice(-20), style);
+      const res = await aiAPI.chat(text, chatOnly.slice(-20), style);
       const aiMsg = {
         role: 'assistant',
         content: res.data?.reply || '抱歉，AI服务暂时不可用。',
@@ -68,25 +71,24 @@ const useAiStore = create((set, get) => ({
     }
   },
 
+  // 解说消息写入独立数组，不污染聊天历史
   addCommentary: (text) => {
     const msg = {
       role: 'assistant',
-      content: `📢 ${text}`,
+      content: text,
       timestamp: Date.now(),
       isCommentary: true
     };
-    const { messages, isOpen } = get();
-    const newMsgs = [...messages, msg];
-    set({
-      messages: newMsgs,
+    const { isOpen } = get();
+    set(state => ({
+      commentaryMessages: [...state.commentaryMessages.slice(-49), msg],
       unreadCount: isOpen ? 0 : get().unreadCount + 1
-    });
-    saveHistory(newMsgs);
+    }));
   },
 
   clearHistory: () => {
     localStorage.removeItem(HISTORY_KEY);
-    set({ messages: [] });
+    set({ messages: [], commentaryMessages: [] });
   }
 }));
 

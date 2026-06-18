@@ -6,6 +6,7 @@ import FlagImage from '../components/FlagImage';
 import useUserStore from '../stores/userStore';
 import HeroCarousel from '../components/HeroCarousel';
 import LiveTicker from '../components/LiveTicker';
+import LiveMatchesSection from '../components/LiveMatchesSection';
 import { fetchStats, matchAPI } from '../services/api';
 
 const stageLabels = { group: '小组赛', round16: '1/8决赛', quarter: '1/4决赛', semi: '半决赛', third: '季军赛', final: '决赛', round32: '1/16决赛' };
@@ -86,6 +87,9 @@ export default function HomePage() {
     <div className="space-y-6">
       {/* ===== Live Ticker ===== */}
       <LiveTicker />
+
+      {/* ===== 正在直播 ===== */}
+      <LiveMatchesSection />
 
       {/* ===== Hero Banner with Photos ===== */}
       <div className="relative overflow-hidden rounded-3xl landscape:rounded-xl p-6 md:p-10 landscape:p-3 min-h-[380px] md:min-h-[420px] landscape:min-h-0 landscape:h-auto flex items-center">

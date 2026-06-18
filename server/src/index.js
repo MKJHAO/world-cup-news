@@ -45,6 +45,8 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/standings', standingRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/admin', adminAuth, adminRoutes);
+app.use('/api/admin/simulator', adminAuth, require('./routes/simulator'));
+app.use('/api/simulator', require('./routes/publicSimulator'));
 app.use('/api/data', dataRoutes);
 app.use('/api/odds', oddsRoutes);
 app.use('/api/gossip', gossipRoutes);
@@ -148,30 +150,43 @@ server.listen(PORT, async () => {
   console.log(`📡 WebSocket 服务已就绪`);
   console.log(`🔌 API 地址: http://localhost:${PORT}/api`);
 
-  // 启动时自动同步最新数据
-  console.log('🔄 正在检查数据更新...');
+  // 启动时生成必要数据 + 自动推进到期比赛
+  console.log('🔄 正在检查数据...');
   try {
-    const result = await dataFetcher.refreshAll();
-    console.log(`  - 2026赛程: ${result.worldcup2026?.newMatches || 0} 场新比赛`);
-    console.log(`  - 新闻: ${result.news?.added || 0} 条`);
-    // 为已完成比赛生成统计数据
+    // 为已完成的比赛生成统计数据
     const statsService = require('./services/statsService');
-    statsService.seedStatsForCompletedMatches();
+    const statsAdded = statsService.seedStatsForCompletedMatches();
+    if (statsAdded > 0) console.log(`  📊 生成了 ${statsAdded} 场比赛的统计数据`);
     // 种子赔率数据 + 花边新闻
     seedOdds();
     seedGossipNews();
+    // 新闻同步
+    try {
+      const result = await dataFetcher.fetchLatestNews();
+      console.log(`  📰 新闻: ${result?.added || 0} 条`);
+    } catch (e) { /* ignore */ }
   } catch (e) {
-    console.log('  ⚠️ 数据同步跳过:', e.message);
+    console.log('  ⚠️ 数据检查跳过:', e.message);
+  }
+
+  // 从 API-Football 同步实时数据
+  try {
+    const liveDataService = require('./services/liveDataService');
+    const result = await liveDataService.syncToDatabase(io);
+    if (result.liveCount > 0) console.log(`  ⚡ 同步了 ${result.liveCount} 场进行中比赛`);
+  } catch (e) {
+    console.log('  ⚠️ 实时数据同步跳过:', e.message);
   }
 });
 
-// 每天凌晨2点自动刷新全部数据
+// 每天凌晨2点自动刷新新闻（不刷新比赛数据）
 cron.schedule('0 2 * * *', async () => {
-  console.log('🔄 定时刷新数据...');
+  console.log('🔄 定时刷新新闻...');
   try {
-    await dataFetcher.refreshAll();
+    const result = await dataFetcher.fetchLatestNews();
+    console.log(`  - 新增: ${result?.added || 0} 条`);
   } catch (e) {
-    console.error('定时刷新失败:', e.message);
+    console.error('新闻刷新失败:', e.message);
   }
 });
 
@@ -186,8 +201,12 @@ cron.schedule('0 */3 * * *', async () => {
   }
 });
 
-// 每分钟检查是否有直播比赛，触发AI解说
+// 每分钟：同步实时数据 + 触发AI解说
 cron.schedule('* * * * *', async () => {
+  try {
+    const liveDataService = require('./services/liveDataService');
+    await liveDataService.syncToDatabase(io);
+  } catch (e) { /* ignore */ }
   try {
     const aiService = require('./services/aiService');
     await aiService.pushLiveCommentary(io);
@@ -195,3 +214,13 @@ cron.schedule('* * * * *', async () => {
     // AI解说失败不影响主服务
   }
 });
+
+// 每30秒驱动模拟引擎tick
+setInterval(() => {
+  try {
+    const matchSimulator = require('./services/matchSimulator');
+    matchSimulator.tickAll(io);
+  } catch (e) {
+    // 模拟引擎失败不影响主服务
+  }
+}, 30000);

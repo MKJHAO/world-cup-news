@@ -24,7 +24,8 @@ export const matchAPI = {
   getDates: () => api.get('/matches/dates').then(r => r.data),
   getByDate: (d) => api.get(`/matches/date/${d}`).then(r => r.data),
   getBracket: () => api.get('/matches/bracket').then(r => r.data),
-  getStatistics: (id) => api.get(`/matches/${id}/statistics`).then(r => r.data)
+  getStatistics: (id) => api.get(`/matches/${id}/statistics`).then(r => r.data),
+  getLive: () => api.get('/matches/live').then(r => r.data)
 };
 
 // === 球队 API ===
@@ -94,6 +95,22 @@ export const adminAPI = {
   deleteNews: (id) => api.delete(`/admin/news/${id}`, { headers: getAdminHeaders() }).then(r => r.data)
 };
 
+export const simulatorAPI = {
+  start: (matchId, speed = 1) => api.post(`/admin/simulator/start/${matchId}`, { speed }, { headers: getAdminHeaders() }).then(r => r.data),
+  stop: (matchId) => api.post(`/admin/simulator/stop/${matchId}`, {}, { headers: getAdminHeaders() }).then(r => r.data),
+  startAll: (speed = 1) => api.post('/admin/simulator/start-all', { speed }, { headers: getAdminHeaders() }).then(r => r.data),
+  stopAll: () => api.post('/admin/simulator/stop-all', {}, { headers: getAdminHeaders() }).then(r => r.data),
+  getStatus: () => api.get('/admin/simulator/status', { headers: getAdminHeaders() }).then(r => r.data)
+};
+
+// 公开模拟API（无需认证）
+export const publicSimulatorAPI = {
+  quickStart: (speed = 60) => api.post('/simulator/quick-start', { speed }).then(r => r.data),
+  quickStartMatch: (matchId, speed = 60) => api.post(`/simulator/quick-start/${matchId}`, { speed }).then(r => r.data),
+  quickStop: () => api.post('/simulator/quick-stop').then(r => r.data),
+  getStatus: () => api.get('/simulator/status').then(r => r.data)
+};
+
 export const authAPI = {
   login: (pw) => api.post('/auth/login', { password: pw }).then(r => r.data),
   logout: () => api.post('/auth/logout', null, { headers: getAdminHeaders() }).then(r => r.data),
@@ -144,7 +161,10 @@ export const aiAPI = {
   getPostMatchSummary: (matchId) =>
     api.get(`/ai/report/post/${matchId}`).then(r => r.data),
   getCommentaryStyles: () =>
-    api.get('/ai/commentary/styles').then(r => r.data)
+    api.get('/ai/commentary/styles').then(r => r.data),
+  // 实时解说（独立端点，不污染聊天历史）
+  getCommentary: (matchInfo) =>
+    api.post('/ai/commentary', matchInfo).then(r => r.data)
 };
 
 export default api;
